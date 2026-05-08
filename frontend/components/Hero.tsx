@@ -46,7 +46,7 @@ export default function Hero() {
               className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/45 bg-white/12 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20"
             >
               <Palette size={18} aria-hidden="true" />
-              창작자 등록하기
+              그룹 등록하기
             </Link>
           </div>
         </div>

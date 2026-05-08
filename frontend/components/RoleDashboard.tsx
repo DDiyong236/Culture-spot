@@ -13,7 +13,6 @@ import {
 import { useAuth } from "@/components/AuthProvider";
 import StatCard from "@/components/StatCard";
 import { cafeSpaces, creators, events } from "@/data/mock";
-import { rankCafeMatches } from "@/lib/matching";
 import { roleLabel } from "@/lib/utils";
 
 function favoriteTitle(key: string) {
@@ -45,7 +44,7 @@ function ConsumerDashboard() {
         <StatCard
           label="즐겨찾기한 창작자"
           value={favoriteCreators}
-          helper="창작자 등록 흐름과 문화 활동에서 관심 창작자를 저장합니다."
+          helper="그룹 등록 흐름과 문화 활동에서 관심 창작자를 저장합니다."
           icon={<Palette size={20} aria-hidden="true" />}
         />
         <StatCard
@@ -118,47 +117,40 @@ function ConsumerDashboard() {
 }
 
 function CreatorDashboard() {
-  const sampleCreator = creators[0];
-  const matches = rankCafeMatches(sampleCreator, cafeSpaces, 3);
-
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.4fr_0.6fr]">
+    <div className="grid gap-6 lg:grid-cols-[0.45fr_0.55fr]">
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex size-11 items-center justify-center rounded-lg bg-primary text-white">
           <Palette size={22} aria-hidden="true" />
         </div>
-        <h2 className="mt-5 text-2xl font-bold text-ink">창작자 작업실</h2>
+        <h2 className="mt-5 text-2xl font-bold text-ink">그룹 프로젝트 관리</h2>
         <p className="mt-3 text-sm leading-6 text-ink/70">
-          프로젝트 정보를 입력하면 카페 벽면, 코너, 시간대 조건을 기준으로
-          어울리는 공간을 추천받습니다.
+          같은 그룹이 오늘은 어쿠스틱 셋을, 다음에는 락 공연이나 팝업을
+          준비할 수 있도록 프로젝트 카드를 저장하고 수정합니다.
         </p>
         <Link
           href="/creators"
           className="focus-ring mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
         >
-          창작자 등록하기
+          그룹 등록하기
         </Link>
       </section>
 
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-        <h2 className="text-xl font-bold text-ink">추천 공간 예시</h2>
-        <div className="mt-4 space-y-3">
-          {matches.map((match) => (
-            <article
-              key={match.cafe.id}
-              className="rounded-lg border border-line bg-background p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-bold text-primary">{match.cafe.name}</p>
-                <p className="text-sm font-bold text-accent">
-                  {match.totalScore}/100
-                </p>
-              </div>
-              <p className="mt-2 text-sm leading-6 text-ink/70">
-                {match.recommendationReason}
-              </p>
-            </article>
-          ))}
+        <h2 className="text-xl font-bold text-ink">최근 준비 흐름</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">저장된 카드</p>
+            <p className="mt-2 text-3xl font-bold text-ink">편집 가능</p>
+          </article>
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">장르 전환</p>
+            <p className="mt-2 text-3xl font-bold text-ink">유연</p>
+          </article>
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">매칭 방식</p>
+            <p className="mt-2 text-3xl font-bold text-ink">공간별</p>
+          </article>
         </div>
       </section>
     </div>

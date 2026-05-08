@@ -71,7 +71,7 @@ export function roleLabel(role: UserRole) {
 export function roleHomeLabel(role: UserRole) {
   const labels: Record<UserRole, string> = {
     consumer: "내 동네 문화",
-    creator: "창작자 작업실",
+    creator: "그룹 프로젝트 관리",
     cafeOwner: "카페 운영 화면",
   };
 
