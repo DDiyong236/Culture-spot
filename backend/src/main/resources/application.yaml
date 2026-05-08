@@ -3,7 +3,7 @@ spring:
     name: backend
   datasource:
     url: jdbc:postgresql://localhost:5432/culture_spot
-    username: postgresql
+    username: postgres
     password: dnjdnlr123
     driver-class-name: org.postgresql.Driver
   jpa:
@@ -14,3 +14,9 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+jwt:
+  secret: ${JWT_SECRET_KEY:v3ry-s3cur3-and-l0ng-rand0m-secr3t-k3y-for-culture-spot-project}
+  access-expiration: 3600000
+  refresh-expiration: 604800000
