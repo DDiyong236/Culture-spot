@@ -16,15 +16,15 @@ const roleOptions: Array<{
 }> = [
   {
     role: "consumer",
-    title: "동네 문화 소비자",
+    title: "동네 문화 사용자",
     description:
       "기본 화면처럼 동네 카페 공간을 탐색하고, 로그인 후 즐겨찾기와 후기를 남깁니다.",
-    points: ["카페 즐겨찾기", "창작자 저장", "후기 작성"],
+    points: ["카페 즐겨찾기", "아티스트 저장", "후기 작성"],
     icon: Heart,
   },
   {
     role: "creator",
-    title: "창작자",
+    title: "아티스트",
     description:
       "프로젝트 정보를 등록하고, 조건에 맞는 동네 카페 공간을 추천받습니다.",
     points: ["프로젝트 등록", "공간 매칭", "지역 관객 확보"],
@@ -32,7 +32,7 @@ const roleOptions: Array<{
   },
   {
     role: "cafeOwner",
-    title: "카페 주인",
+    title: "사장님",
     description:
       "영업을 유지한 채 활용 가능한 벽, 코너, 한적한 시간대를 등록합니다.",
     points: ["카페 공간 등록", "유휴 시간 활용", "문화 브랜딩"],

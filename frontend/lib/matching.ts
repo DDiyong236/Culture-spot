@@ -124,7 +124,7 @@ function buildReason(
   const localFit =
     normalize(creator.preferredRegion) === normalize(cafe.region)
       ? `${cafe.region} 지역에 있고`
-      : "창작자가 선호하는 동네 흐름과 가깝고";
+      : "아티스트가 선호하는 동네 흐름과 가깝고";
   const strongestFactors = matchedFactors.slice(0, 3).join(", ");
 
   return `이 카페는 ${creator.projectTitle || "해당 프로젝트"}에 잘 맞습니다. ${localFit} ${eventTypeLabel(creator.eventType)} 형식을 지원하며, ${strongestFactors || "작은 문화 활동에 필요한 조건"}을 갖추고 있어 카페 영업을 유지한 채 자연스럽게 운영할 수 있습니다.`;

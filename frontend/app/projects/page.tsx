@@ -9,14 +9,14 @@ export default function ProjectsPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold text-accent">
-            창작자 프로젝트 찾기
+            아티스트 프로젝트 찾기
           </p>
           <h1 className="mt-2 text-4xl font-bold text-ink">
             우리 카페에 어울릴 작은 문화 프로젝트를 찾아보세요.
           </h1>
           <p className="mt-4 text-base leading-7 text-ink/72">
             카페 영업을 멈추지 않고 벽면, 코너, 운영 중 협의 가능한 시간에
-            자연스럽게 놓일 창작자 프로젝트를 살펴보는 카페 주인용 화면입니다.
+            자연스럽게 놓일 아티스트 프로젝트를 살펴보는 사장님용 화면입니다.
           </p>
         </div>
 

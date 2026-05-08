@@ -59,7 +59,7 @@ export default function AdminPage() {
             동네 카페 위에 쌓이는 문화 레이어를 확인하세요.
           </h1>
           <p className="mt-4 text-base leading-7 text-ink/72">
-            목 통계로 등록 카페, 창작자, 예정 이벤트, 활용률, 최근 매칭
+            목 통계로 등록 카페, 아티스트, 예정 이벤트, 활용률, 최근 매칭
             요청을 확인할 수 있습니다.
           </p>
         </div>
@@ -72,9 +72,9 @@ export default function AdminPage() {
             icon={<Coffee size={20} aria-hidden="true" />}
           />
           <StatCard
-            label="등록 창작자"
+            label="등록 아티스트"
             value={creators.length}
-            helper="동네 문화 경험을 준비 중인 신진 창작자입니다."
+            helper="동네 문화 경험을 준비 중인 신진 아티스트입니다."
             icon={<Palette size={20} aria-hidden="true" />}
           />
           <StatCard
@@ -86,7 +86,7 @@ export default function AdminPage() {
           <StatCard
             label="성사된 매칭"
             value={events.length}
-            helper="카페와 창작자 적합도를 바탕으로 생성된 목 이벤트입니다."
+            helper="카페와 아티스트 적합도를 바탕으로 생성된 목 이벤트입니다."
             icon={<Handshake size={20} aria-hidden="true" />}
           />
           <StatCard

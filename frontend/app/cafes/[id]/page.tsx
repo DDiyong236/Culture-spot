@@ -76,6 +76,7 @@ export default function CafeDetailPage({
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const showConsumerActions = !hydrated || !user || user.role === "consumer";
 
   useEffect(() => {
     const foundCafe =
@@ -186,7 +187,9 @@ export default function CafeDetailPage({
                     {cafe.region} · {cafe.address}
                   </p>
                 </div>
-                <CafeLikeCount cafeId={cafe.id} cafeName={cafe.name} />
+                {showConsumerActions ? (
+                  <CafeLikeCount cafeId={cafe.id} cafeName={cafe.name} />
+                ) : null}
               </div>
 
               <p className="mt-5 text-base leading-7 text-ink/72">
@@ -220,76 +223,82 @@ export default function CafeDetailPage({
           </div>
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[0.42fr_0.58fr]">
-          <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
-            <p className="text-sm font-semibold text-accent">리뷰 작성</p>
-            <h2 className="mt-1 text-2xl font-bold text-ink">
-              이 카페 경험을 남겨주세요.
-            </h2>
+        <section
+          className={`mt-6 grid gap-6 ${
+            showConsumerActions ? "lg:grid-cols-[0.42fr_0.58fr]" : ""
+          }`}
+        >
+          {showConsumerActions ? (
+            <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
+              <p className="text-sm font-semibold text-accent">리뷰 작성</p>
+              <h2 className="mt-1 text-2xl font-bold text-ink">
+                이 카페 경험을 남겨주세요.
+              </h2>
 
-            {!hydrated ? null : user?.role === "consumer" ? (
-              <form onSubmit={handleReviewSubmit} className="mt-5 space-y-4">
-                <label className="space-y-1.5">
-                  <span className="label">평점</span>
-                  <select
-                    className="form-field"
-                    value={rating}
-                    onChange={(event) => setRating(Number(event.target.value))}
+              {!hydrated ? null : user?.role === "consumer" ? (
+                <form onSubmit={handleReviewSubmit} className="mt-5 space-y-4">
+                  <label className="space-y-1.5">
+                    <span className="label">평점</span>
+                    <select
+                      className="form-field"
+                      value={rating}
+                      onChange={(event) => setRating(Number(event.target.value))}
+                    >
+                      {[5, 4, 3, 2, 1].map((score) => (
+                        <option key={score} value={score}>
+                          {score}점
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1.5">
+                    <span className="label">사진</span>
+                    <input
+                      className="form-field file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => handlePhotoChange(event.target.files?.[0])}
+                    />
+                  </label>
+                  {photoUrl ? (
+                    <img
+                      src={photoUrl}
+                      alt="리뷰 첨부 사진 미리보기"
+                      className="h-36 w-full rounded-lg border border-line object-cover"
+                    />
+                  ) : null}
+                  <label className="space-y-1.5">
+                    <span className="label">리뷰</span>
+                    <textarea
+                      className="form-field min-h-28"
+                      value={content}
+                      onChange={(event) => setContent(event.target.value)}
+                      placeholder={`${cafe.name}에서 발견한 문화 경험을 적어주세요.`}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary/90"
                   >
-                    {[5, 4, 3, 2, 1].map((score) => (
-                      <option key={score} value={score}>
-                        {score}점
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="space-y-1.5">
-                  <span className="label">사진</span>
-                  <input
-                    className="form-field file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => handlePhotoChange(event.target.files?.[0])}
-                  />
-                </label>
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt="리뷰 첨부 사진 미리보기"
-                    className="h-36 w-full rounded-lg border border-line object-cover"
-                  />
-                ) : null}
-                <label className="space-y-1.5">
-                  <span className="label">리뷰</span>
-                  <textarea
-                    className="form-field min-h-28"
-                    value={content}
-                    onChange={(event) => setContent(event.target.value)}
-                    placeholder={`${cafe.name}에서 발견한 문화 경험을 적어주세요.`}
-                  />
-                </label>
-                <button
-                  type="submit"
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary/90"
-                >
-                  <MessageSquareText size={16} aria-hidden="true" />
-                  리뷰 등록하기
-                </button>
-              </form>
-            ) : (
-              <div className="mt-5 rounded-lg border border-line bg-background p-4">
-                <p className="text-sm leading-6 text-ink/70">
-                  소비자 계정으로 로그인하면 평점, 사진, 리뷰를 등록할 수 있습니다.
-                </p>
-                <Link
-                  href="/onboarding"
-                  className="focus-ring mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white"
-                >
-                  로그인/회원가입
-                </Link>
-              </div>
-            )}
-          </div>
+                    <MessageSquareText size={16} aria-hidden="true" />
+                    리뷰 등록하기
+                  </button>
+                </form>
+              ) : (
+                <div className="mt-5 rounded-lg border border-line bg-background p-4">
+                  <p className="text-sm leading-6 text-ink/70">
+                    사용자 계정으로 로그인하면 평점, 사진, 리뷰를 등록할 수 있습니다.
+                  </p>
+                  <Link
+                    href="/onboarding"
+                    className="focus-ring mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white"
+                  >
+                    로그인/회원가입
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
             <div className="flex items-center justify-between gap-4">
@@ -309,7 +318,7 @@ export default function CafeDetailPage({
                   className="rounded-lg border border-line bg-background p-4"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-bold text-primary">소비자 후기</p>
+                    <p className="font-bold text-primary">사용자 후기</p>
                     <p className="inline-flex items-center gap-1 text-sm font-bold text-accent">
                       <Star size={14} className="fill-current" aria-hidden="true" />
                       {review.rating}점

@@ -19,7 +19,7 @@ export default function Hero() {
             일상의 카페를 동네의 작은 무대로.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-white/88">
-            동네 카페는 작은 갤러리와 무대가 되고, 창작자는 주민이 이미
+            동네 카페는 작은 갤러리와 무대가 되고, 아티스트는 주민이 이미
             오가는 공간에서 지역 관객을 만납니다.
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">

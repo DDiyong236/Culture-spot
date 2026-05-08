@@ -134,7 +134,7 @@ export const cafeSpaces: CafeSpace[] = [
     equipment: ["Speaker", "Projector", "Display wall"],
     priceType: "paid",
     pricePerHour: 50000,
-    atmosphere: "창작자와 제작자에게 열린 실험적 분위기",
+    atmosphere: "아티스트와 제작자에게 열린 실험적 분위기",
     image:
       "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=900&q=80",
     utilizationRate: 77,
@@ -168,7 +168,7 @@ export const cafeSpaces: CafeSpace[] = [
     region: "경리단",
     address: "용산구 회나무로 56",
     description:
-      "반개방 코너와 해질녘 시간대가 매력적인 카페로, 낭독회, 인디 어쿠스틱, 창작자 모임에 잘 맞습니다.",
+      "반개방 코너와 해질녘 시간대가 매력적인 카페로, 낭독회, 인디 어쿠스틱, 아티스트 모임에 잘 맞습니다.",
     availableTypes: ["performance", "pop-up"],
     capacity: 34,
     seats: 46,
@@ -476,7 +476,7 @@ export const events: LocalEvent[] = [
     description:
       "손님들이 평소처럼 커피를 주문하는 동안, 창가 벽면을 따라 조용히 배치되는 사진 전시입니다.",
     recommendationReason:
-      "벽면 공간과 차분한 분위기, 평일 오후의 한적한 시간대가 창작자의 희망 지역과 잘 맞습니다.",
+      "벽면 공간과 차분한 분위기, 평일 오후의 한적한 시간대가 아티스트의 희망 지역과 잘 맞습니다.",
     tags: ["사진", "벽면 전시", "조용한 카페"],
   },
   {

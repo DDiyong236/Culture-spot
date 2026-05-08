@@ -61,9 +61,9 @@ export function noiseLabel(noise: NoiseTolerance) {
 
 export function roleLabel(role: UserRole) {
   const labels: Record<UserRole, string> = {
-    consumer: "소비자",
-    creator: "창작자",
-    cafeOwner: "카페 주인",
+    consumer: "사용자",
+    creator: "아티스트",
+    cafeOwner: "사장님",
   };
 
   return labels[role];

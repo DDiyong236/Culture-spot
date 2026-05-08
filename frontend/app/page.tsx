@@ -18,7 +18,7 @@ const flowSteps = [
     icon: Store,
   },
   {
-    title: "창작자가 작은 프로젝트로 신청합니다",
+    title: "아티스트가 작은 프로젝트로 신청합니다",
     body: "전시, 공연, 팝업, 토크가 공간 조건, 예산, 시간대, 분위기에 따라 매칭됩니다.",
     icon: Brush,
   },
@@ -31,7 +31,7 @@ const flowSteps = [
 
 const userCards = [
   {
-    title: "창작자를 위해",
+    title: "아티스트를 위해",
     icon: Sparkles,
     points: [
       "부담 적은 동네 공간 찾기",
@@ -54,7 +54,7 @@ const userCards = [
     points: [
       "가까운 전시와 공연 발견",
       "부담 없이 문화 경험하기",
-      "지역 창작자 응원하기",
+      "지역 아티스트 응원하기",
     ],
   },
 ];

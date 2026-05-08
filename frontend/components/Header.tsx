@@ -17,7 +17,7 @@ import type { UserRole } from "@/types";
 function getNavItems(role?: UserRole) {
   const discoveryItem =
     role === "cafeOwner"
-      ? { href: "/projects", label: "창작자 프로젝트 찾기", icon: Palette }
+      ? { href: "/projects", label: "아티스트 프로젝트 찾기", icon: Palette }
       : { href: "/spaces", label: "공간 찾기", icon: Map };
   const baseItems = [discoveryItem];
 
@@ -40,14 +40,14 @@ function getNavItems(role?: UserRole) {
   if (role === "consumer") {
     return [
       ...baseItems,
-      { href: "/creator-search", label: "창작자 찾기", icon: Palette },
+      { href: "/creator-search", label: "아티스트 찾기", icon: Palette },
       { href: "/dashboard", label: "내 동네 문화", icon: UserRound },
     ];
   }
 
   return [
     ...baseItems,
-    { href: "/creator-search", label: "창작자 찾기", icon: Palette },
+    { href: "/creator-search", label: "아티스트 찾기", icon: Palette },
   ];
 }
 

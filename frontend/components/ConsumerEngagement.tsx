@@ -14,7 +14,7 @@ type ConsumerEngagementProps = {
 };
 
 function targetLabel(targetType: FavoriteTargetType) {
-  return targetType === "cafe" ? "카페" : "창작자";
+  return targetType === "cafe" ? "카페" : "아티스트";
 }
 
 export default function ConsumerEngagement({
@@ -77,7 +77,7 @@ export default function ConsumerEngagement({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-primary">
-            {targetLabel(targetType)} 소비자 기능
+            {targetLabel(targetType)} 사용자 기능
           </p>
           <p className="mt-1 text-xs text-ink/62">
             즐겨찾기와 후기는 브라우저에 목 데이터로 저장됩니다.
@@ -144,7 +144,7 @@ export default function ConsumerEngagement({
                 <article key={review.id} className="rounded-lg bg-white p-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-bold text-primary">
-                      소비자 후기
+                      사용자 후기
                     </p>
                     <p className="inline-flex items-center gap-1 text-xs font-bold text-accent">
                       <Star size={13} className="fill-current" aria-hidden="true" />

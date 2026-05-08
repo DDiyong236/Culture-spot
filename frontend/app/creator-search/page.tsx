@@ -115,7 +115,7 @@ function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
           className="focus-ring mt-auto inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
         >
           <Sparkles size={16} aria-hidden="true" />
-          창작자 자세히 보기
+          아티스트 자세히 보기
         </Link>
       </div>
     </article>
@@ -168,12 +168,12 @@ export default function CreatorSearchPage() {
     <div className="surface-grid min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold text-accent">창작자 탐색</p>
+          <p className="text-sm font-semibold text-accent">아티스트 탐색</p>
           <h1 className="mt-2 text-4xl font-bold text-ink">
-            동네 카페에서 만날 창작자 프로젝트를 찾아보세요.
+            동네 카페에서 만날 아티스트 프로젝트를 찾아보세요.
           </h1>
           <p className="mt-4 text-base leading-7 text-ink/72">
-            전시, 공연, 팝업을 준비하는 창작자 프로젝트를 공간 찾기처럼
+            전시, 공연, 팝업을 준비하는 아티스트 프로젝트를 공간 찾기처럼
             둘러보고 상세 페이지에서 후기와 프로젝트 정보를 확인할 수 있습니다.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function CreatorSearchPage() {
                 className="form-field"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                placeholder="창작자, 장르, 프로젝트 검색"
+                placeholder="아티스트, 장르, 프로젝트 검색"
               />
             </label>
             <label className="space-y-1.5">
@@ -245,7 +245,7 @@ export default function CreatorSearchPage() {
 
         <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-sm font-semibold text-primary">
-            창작자 프로젝트 {filteredCreators.length}개
+            아티스트 프로젝트 {filteredCreators.length}개
           </p>
           <p className="text-sm text-ink/62">
             카드에서 자세히 보기로 이동해 후기와 정보를 확인할 수 있습니다.
@@ -260,7 +260,7 @@ export default function CreatorSearchPage() {
 
         {!filteredCreators.length ? (
           <div className="mt-5 rounded-lg border border-line bg-white p-6 shadow-soft">
-            <p className="font-bold text-primary">조건에 맞는 창작자가 없습니다.</p>
+            <p className="font-bold text-primary">조건에 맞는 아티스트가 없습니다.</p>
             <p className="mt-2 text-sm leading-6 text-ink/70">
               검색어를 줄이거나 이벤트 유형, 장르, 동네 필터를 전체로 바꿔보세요.
             </p>

@@ -25,6 +25,7 @@ type CafeCardProps = {
   score?: number;
   reason?: string;
   compact?: boolean;
+  showLikeCount?: boolean;
 };
 
 export default function CafeCard({
@@ -32,6 +33,7 @@ export default function CafeCard({
   score,
   reason,
   compact = false,
+  showLikeCount = true,
 }: CafeCardProps) {
   const features = [cafe.atmosphere, cafeSizeLabel(cafe)];
   const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-0";
@@ -76,7 +78,9 @@ export default function CafeCard({
                 {cafe.region} · {cafe.address}
               </p>
             </div>
-            <CafeLikeCount cafeId={cafe.id} cafeName={cafe.name} />
+            {showLikeCount ? (
+              <CafeLikeCount cafeId={cafe.id} cafeName={cafe.name} />
+            ) : null}
           </div>
           {!compact ? (
             <p className="mt-3 line-clamp-3 text-sm leading-6 text-ink/72">

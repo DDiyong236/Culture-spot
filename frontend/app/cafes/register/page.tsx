@@ -13,7 +13,7 @@ export default function CafeRegisterPage() {
           </h1>
           <p className="mt-4 text-base leading-7 text-ink/72">
             공간 이미지와 장비, 가능한 이벤트 유형을 등록하세요. 카페는
-            계속 손님을 맞이하고, 창작자는 공간에 작은 동네 무대를 더합니다.
+            계속 손님을 맞이하고, 아티스트는 공간에 작은 동네 무대를 더합니다.
           </p>
         </div>
         <CafeRegisterForm />

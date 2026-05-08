@@ -178,7 +178,7 @@ export default function CafeRegisterForm() {
             운영 중인 카페의 작은 문화 공간을 등록하세요
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            Local Stage는 카페 영업을 유지한 채, 잘 맞는 창작자와 작은
+            Local Stage는 카페 영업을 유지한 채, 잘 맞는 아티스트와 작은
             문화 경험이 공간 안에 자연스럽게 놓이도록 돕습니다.
           </p>
         </div>
@@ -281,7 +281,7 @@ export default function CafeRegisterForm() {
               <div className="flex items-center gap-2 text-primary">
                 <ImagePlus size={18} aria-hidden="true" />
                 <span className="text-sm font-bold">
-                  창작자가 확인할 공간 사진을 넣어주세요
+                  아티스트가 확인할 공간 사진을 넣어주세요
                 </span>
               </div>
               <input
@@ -385,7 +385,7 @@ export default function CafeRegisterForm() {
           <div className="grid gap-5 lg:grid-cols-2">
             <CafeCard
               cafe={preview}
-              reason="이 미리보기는 창작자에게 보일 카페 공간 카드입니다. 매칭은 카페의 평소 영업을 방해하지 않는 작은 문화 활용을 우선합니다."
+              reason="이 미리보기는 아티스트에게 보일 카페 공간 카드입니다. 매칭은 카페의 평소 영업을 방해하지 않는 작은 문화 활용을 우선합니다."
             />
           </div>
         ) : (

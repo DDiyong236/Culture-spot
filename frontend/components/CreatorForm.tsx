@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { PencilLine, PlusCircle, Save, Sparkles, UsersRound } from "lucide-react";
+import { PencilLine, Save, Sparkles, UsersRound } from "lucide-react";
 import type { CreatorProject, EventType, MatchingResult } from "@/types";
 import { cafeSpaces } from "@/data/mock";
 import { rankCafeMatches } from "@/lib/matching";
@@ -142,12 +142,6 @@ export default function CreatorForm() {
     setResults(rankCafeMatches(card, cafeSpaces, 4));
   }
 
-  function resetForm() {
-    setForm({ ...defaultGroupForm, id: "draft-group" });
-    setEditingId(null);
-    setResults([]);
-  }
-
   return (
     <div className="space-y-6">
       <form
@@ -263,7 +257,7 @@ export default function CreatorForm() {
           </label>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6">
           <button
             type="submit"
             className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
@@ -274,14 +268,6 @@ export default function CreatorForm() {
               <Sparkles size={18} aria-hidden="true" />
             )}
             {editingId ? "그룹 카드 수정하기" : "그룹 카드 저장하기"}
-          </button>
-          <button
-            type="button"
-            onClick={resetForm}
-            className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-background px-4 py-3 text-sm font-bold text-primary transition hover:border-accent sm:w-auto"
-          >
-            <PlusCircle size={18} aria-hidden="true" />
-            새 그룹
           </button>
         </div>
       </form>
@@ -367,6 +353,7 @@ export default function CreatorForm() {
                   score={result.totalScore}
                   reason={result.recommendationReason}
                   compact
+                  showLikeCount={false}
                 />
               ))}
             </div>
