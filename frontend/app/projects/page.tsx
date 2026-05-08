@@ -35,13 +35,10 @@ function ArtistProjectCard({ project }: { project: CreatorProject }) {
           alt={`${project.projectTitle} 프로젝트 이미지`}
           className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
         />
-        <div className="absolute right-3 top-3 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-primary shadow-soft">
-          {eventTypeLabel(project.eventType)}
-        </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div className="min-h-[4.5rem]">
+      <div className="flex flex-1 flex-col gap-3 p-3">
+        <div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/creators/${project.id}`}
@@ -61,7 +58,7 @@ function ArtistProjectCard({ project }: { project: CreatorProject }) {
           {project.introduction}
         </p>
 
-        <div className="grid min-h-[4.5rem] content-start gap-2 text-sm text-ink/74 sm:grid-cols-2">
+        <div className="grid content-start gap-2 text-sm text-ink/74 sm:grid-cols-2">
           <p className="flex items-center gap-2">
             <MapPin size={16} className="text-sage" aria-hidden="true" />
             {project.preferredRegion}

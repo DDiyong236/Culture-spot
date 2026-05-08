@@ -7,7 +7,6 @@ import {
   Clock,
   MapPin,
   MessageSquareText,
-  Projector,
   Star,
   Users,
   Volume2,
@@ -19,7 +18,6 @@ import { fetchPlaces } from "@/lib/placeApi";
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import {
   cafeSizeLabel,
-  equipmentLabel,
   eventTypeLabel,
   formatOpeningHours,
   noiseLabel,
@@ -77,6 +75,7 @@ export default function CafeDetailPage({
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const showConsumerActions = !hydrated || !user || user.role === "consumer";
 
   useEffect(() => {
@@ -116,6 +115,10 @@ export default function CafeDetailPage({
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [cafe?.id]);
 
   const reviews = useMemo(() => {
     if (!cafe) return [];
@@ -183,7 +186,10 @@ export default function CafeDetailPage({
     );
   }
 
-  const cafeImages = cafe.images?.length ? cafe.images : [cafe.image];
+  const cafeImages = Array.from(
+    new Set(cafe.images?.length ? cafe.images : [cafe.image]),
+  );
+  const selectedImage = cafeImages[selectedImageIndex] ?? cafeImages[0];
 
   return (
     <div className="surface-grid min-h-screen py-10">
@@ -200,19 +206,35 @@ export default function CafeDetailPage({
           <div className="grid lg:grid-cols-[0.58fr_0.42fr]">
             <div className="bg-background">
               <img
-                src={cafeImages[0]}
-                alt={`${cafe.name} 대표 공간 이미지`}
+                src={selectedImage}
+                alt={`${cafe.name} 선택된 공간 이미지`}
                 className="h-80 w-full object-cover lg:h-[440px]"
               />
               {cafeImages.length > 1 ? (
-                <div className="grid grid-cols-3 gap-2 border-t border-line p-2">
-                  {cafeImages.slice(1, 4).map((image, index) => (
-                    <img
+                <div className="grid grid-cols-3 gap-2 border-t border-line p-2 sm:grid-cols-4">
+                  {cafeImages.map((image, index) => (
+                    <button
                       key={`${image}-${index}`}
-                      src={image}
-                      alt={`${cafe.name} 추가 공간 이미지 ${index + 2}`}
-                      className="h-24 w-full rounded-md border border-line object-cover"
-                    />
+                      type="button"
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`focus-ring relative overflow-hidden rounded-md border transition ${
+                        selectedImageIndex === index
+                          ? "border-accent ring-2 ring-accent/35"
+                          : "border-line hover:border-accent"
+                      }`}
+                      aria-label={`${cafe.name} 공간 이미지 ${index + 1} 보기`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${cafe.name} 공간 이미지 ${index + 1}`}
+                        className="h-24 w-full object-cover"
+                      />
+                      {index === 0 ? (
+                        <span className="absolute left-2 top-2 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-primary shadow-sm">
+                          대표
+                        </span>
+                      ) : null}
+                    </button>
                   ))}
                 </div>
               ) : null}
@@ -250,10 +272,6 @@ export default function CafeDetailPage({
                 <p className="flex items-center gap-2">
                   <Users size={16} className="text-sage" aria-hidden="true" />
                   수용 {cafe.capacity}명
-                </p>
-                <p className="flex items-center gap-2">
-                  <Projector size={16} className="text-sage" aria-hidden="true" />
-                  {cafe.equipment.map(equipmentLabel).join(", ")}
                 </p>
                 <p className="flex items-center gap-2">
                   <Volume2 size={16} className="text-sage" aria-hidden="true" />

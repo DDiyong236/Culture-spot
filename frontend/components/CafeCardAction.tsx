@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, FileText, Map, Palette, Store } from "lucide-react";
+import { CheckCircle2, FileText, Map, Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import type { CafeSpace, CreatorProject } from "@/types";
@@ -28,7 +28,6 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
   const { user } = useAuth();
   const [groupCards, setGroupCards] = useState<CreatorProject[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
-  const [isChoosing, setIsChoosing] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [appliedMessage, setAppliedMessage] = useState("");
   const selectedGroup = groupCards.find((card) => card.id === selectedGroupId);
@@ -82,65 +81,52 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
     setAppliedMessage(
       `${application.projectTitle} 프로젝트로 ${cafe.name}에 신청 완료되었습니다.`,
     );
-    setIsChoosing(false);
     setIsConfirming(false);
   }
 
   if (user?.role === "creator") {
     return (
       <div className="space-y-3">
-        <button
-          type="button"
-          onClick={() => setIsChoosing((current) => !current)}
-          className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
-        >
-          <Palette size={16} aria-hidden="true" />
-          이 카페에 신청하기
-        </button>
-
-        {isChoosing ? (
-          <div className="rounded-lg border border-line bg-background p-3">
-            {groupCards.length ? (
-              <div className="space-y-3">
-                <label className="space-y-1.5">
-                  <span className="label">신청할 프로젝트 카드</span>
-                  <select
-                    className="form-field"
-                    value={selectedGroupId}
-                    onChange={(event) => setSelectedGroupId(event.target.value)}
-                  >
-                    {groupCards.map((card) => (
-                      <option key={card.id} value={card.id}>
-                        {card.projectTitle || "프로젝트 제목 미입력"}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+        <div className="rounded-lg border border-line bg-background p-3">
+          {groupCards.length ? (
+            <label className="space-y-2">
+              <span className="label">신청할 프로젝트</span>
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <select
+                  className="form-field"
+                  value={selectedGroupId}
+                  onChange={(event) => setSelectedGroupId(event.target.value)}
+                >
+                  {groupCards.map((card) => (
+                    <option key={card.id} value={card.id}>
+                      {card.projectTitle || "프로젝트 제목 미입력"}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
                   onClick={() => setIsConfirming(true)}
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent/90"
+                  className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
                 >
                   <FileText size={16} aria-hidden="true" />
-                  선택한 카드로 신청 완료
+                  신청하기
                 </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm leading-6 text-ink/70">
-                  아직 저장된 프로젝트 카드가 없습니다. 먼저 프로젝트 등록에서
-                  신청할 카드를 만들어주세요.
-                </p>
-                <Link
-                  href="/creators"
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent"
-                >
-                  프로젝트 등록으로 이동
-                </Link>
-              </div>
-            )}
-          </div>
-        ) : null}
+            </label>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <p className="text-sm leading-6 text-ink/70">
+                신청할 프로젝트 카드가 없습니다. 먼저 프로젝트를 등록해주세요.
+              </p>
+              <Link
+                href="/creators"
+                className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent"
+              >
+                프로젝트 등록
+              </Link>
+            </div>
+          )}
+        </div>
 
         {appliedMessage ? (
           <p className="flex items-center gap-2 rounded-lg border border-line bg-background p-3 text-sm font-bold text-primary">
@@ -159,7 +145,7 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
             <div className="w-full max-w-sm rounded-lg border border-line bg-white p-5 shadow-soft">
               <p className="text-sm font-semibold text-accent">신청 확인</p>
               <h2 id={`confirm-${cafe.id}`} className="mt-2 text-2xl font-bold text-ink">
-                찐으로 신청하겠습니까?
+                이 프로젝트로 신청할까요?
               </h2>
               <p className="mt-3 text-sm leading-6 text-ink/70">
                 {selectedGroup?.projectTitle || "선택한 프로젝트"} 카드로 {cafe.name}에

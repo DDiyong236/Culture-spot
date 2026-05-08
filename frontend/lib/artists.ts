@@ -29,13 +29,20 @@ function dedupeProjects(projects: CreatorProject[]) {
   return Array.from(projectMap.values());
 }
 
+function isLegacyPlaceholderProject(project: CreatorProject) {
+  const name = project.name.trim();
+  return /^group-\d+$/.test(name) || (!name && /^group-\d+$/.test(project.id));
+}
+
 export function buildArtistProfiles(projects: CreatorProject[]) {
   const artistMap = new Map<string, CreatorProject[]>();
 
-  dedupeProjects(projects).forEach((project) => {
-    const artistName = project.name.trim() || project.id;
-    artistMap.set(artistName, [...(artistMap.get(artistName) ?? []), project]);
-  });
+  dedupeProjects(projects)
+    .filter((project) => !isLegacyPlaceholderProject(project))
+    .forEach((project) => {
+      const artistName = project.name.trim() || project.id;
+      artistMap.set(artistName, [...(artistMap.get(artistName) ?? []), project]);
+    });
 
   return Array.from(artistMap.entries()).map<ArtistProfile>(
     ([name, artistProjects]) => {

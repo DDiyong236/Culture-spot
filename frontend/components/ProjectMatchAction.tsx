@@ -56,7 +56,7 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
     }
 
     setAppliedMessage(
-      `${selectedCafe.name} 정보로 ${application.projectTitle}에 신청 완료되었습니다.`,
+      `${selectedCafe.name} 정보로 ${application.projectTitle}에 협업 요청을 보냈습니다.`,
     );
     setIsConfirming(false);
   }
@@ -69,7 +69,7 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
         className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
       >
         <Music2 size={16} aria-hidden="true" />
-        협업 신청하기
+        협업 요청 보내기
       </button>
 
       {appliedMessage ? (
@@ -87,22 +87,22 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
           aria-labelledby={`project-confirm-${project.id}`}
         >
           <div className="w-full max-w-sm rounded-lg border border-line bg-white p-5 shadow-soft">
-            <p className="text-sm font-semibold text-accent">협업 신청 확인</p>
+            <p className="text-sm font-semibold text-accent">협업 요청 확인</p>
             <h2
               id={`project-confirm-${project.id}`}
               className="mt-2 text-2xl font-bold text-ink"
             >
-              찐으로 신청하겠습니다?
+              협업 요청을 보낼까요?
             </h2>
             {selectedCafe ? (
               <p className="mt-3 text-sm leading-6 text-ink/70">
-                {selectedCafe.name} 정보로 {project.projectTitle}에 협업 요청을
-                보냅니다.
+                {selectedCafe.name} 정보로 {project.projectTitle} 프로젝트에
+                요청을 보냅니다.
               </p>
             ) : (
               <p className="mt-3 text-sm leading-6 text-ink/70">
-                아직 등록된 카페 정보가 없습니다. 먼저 카페 정보를 등록해야
-                협업 신청을 보낼 수 있습니다.
+                아직 등록된 장소 정보가 없습니다. 먼저 장소를 등록해야 협업
+                요청을 보낼 수 있습니다.
               </p>
             )}
 
@@ -120,14 +120,14 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
                   onClick={applyWithSelectedCafe}
                   className="focus-ring inline-flex flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
                 >
-                  네, 신청할게요
+                  요청 보내기
                 </button>
               ) : (
                 <Link
                   href="/cafes/register"
                   className="focus-ring inline-flex flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
                 >
-                  카페 등록
+                  장소 등록
                 </Link>
               )}
             </div>

@@ -484,9 +484,6 @@ function CreatorDashboard() {
     `${artistName} 계정으로 시연 중입니다. 프로젝트를 등록하면 소개와 대표 장르가 이곳에 이어서 표시됩니다.`;
   const artistProfileImage =
     "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=500&q=80";
-  const artistSpecialty = artistGenres.length
-    ? artistGenres.join(" · ")
-    : "어쿠스틱 · 사진 · 작은 공연";
   const artistBaseRegion = artistRegions[0] ?? "연남";
   const artistPortfolio =
     primaryProject?.portfolioUrl || "portfolio.localstage.kr/honggildong";
@@ -499,29 +496,29 @@ function CreatorDashboard() {
         ]),
       )
     : ["시연 계정", "프로젝트 등록 대기"];
+  const artistMeta = [
+    artistBaseRegion ? `${artistBaseRegion} 기반` : "",
+    artistPortfolio,
+  ].filter(Boolean);
 
   return (
     <div className="space-y-6">
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-          <div className="flex max-w-4xl flex-col gap-5 md:flex-row md:items-stretch">
-            <div className="relative h-56 w-full overflow-hidden rounded-lg border border-line bg-background md:h-auto md:w-44 md:self-stretch">
+          <div className="flex min-w-0 flex-1 flex-col gap-5 md:flex-row md:items-stretch">
+            <div className="relative h-48 w-full overflow-hidden rounded-lg border border-line bg-background md:h-auto md:w-44 md:self-stretch">
               <img
                 src={artistProfileImage}
                 alt={`${artistName} 임시 프로필 이미지`}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/90 to-transparent p-3 pt-10">
-                <p className="text-xs font-bold text-accent">임시 프로필</p>
-                <p className="mt-1 text-sm font-bold text-primary">
-                  {artistBaseRegion} 기반 프로젝트
-                </p>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/85 to-transparent p-3 pt-10">
+                <p className="text-xs font-bold text-accent">프로필 이미지</p>
               </div>
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-accent">내 아티스트 프로필</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-3xl font-bold text-ink">{artistName}</h2>
                 {artistProfileBadges.map((badge) => (
                   <span key={badge} className="badge">
@@ -532,24 +529,9 @@ function CreatorDashboard() {
               <p className="mt-3 text-sm leading-6 text-ink/72">
                 {artistIntro}
               </p>
-              <div className="mt-4 grid gap-3 text-sm text-ink/70 sm:grid-cols-2">
-                <p className="rounded-lg border border-line bg-background p-3">
-                  <span className="block text-xs font-bold text-primary/62">
-                    프로젝트 분야
-                  </span>
-                  <span className="mt-1 block font-bold text-ink">
-                    {artistSpecialty}
-                  </span>
-                </p>
-                <p className="rounded-lg border border-line bg-background p-3">
-                  <span className="block text-xs font-bold text-primary/62">
-                    포트폴리오
-                  </span>
-                  <span className="mt-1 block break-all font-bold text-ink">
-                    {artistPortfolio}
-                  </span>
-                </p>
-              </div>
+              <p className="mt-3 break-all text-sm font-semibold text-primary/72">
+                {artistMeta.join(" · ")}
+              </p>
             </div>
           </div>
 
@@ -603,7 +585,7 @@ function CreatorDashboard() {
           <div>
             <p className="text-sm font-semibold text-accent">내 프로젝트</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              카페에 제안할 프로젝트 카드
+              장소에 제안할 프로젝트 카드
             </h2>
           </div>
           <Link
@@ -730,7 +712,7 @@ function CreatorDashboard() {
             <div>
               <p className="text-sm font-semibold text-accent">보낸 제안</p>
               <h2 className="mt-1 text-2xl font-bold text-ink">
-                카페에 보낸 협업 제안
+                장소에 보낸 협업 제안
               </h2>
             </div>
             <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
@@ -785,7 +767,7 @@ function CreatorDashboard() {
           <div>
             <p className="text-sm font-semibold text-accent">다가오는 일정</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              확정된 카페 협업 일정
+              확정된 장소 협업 일정
             </h2>
           </div>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
@@ -841,7 +823,7 @@ function CreatorDashboard() {
           <div>
             <p className="text-sm font-semibold text-accent">지난 협업 기록</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              협업한 카페와 횟수
+              협업한 장소와 횟수
             </h2>
           </div>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
