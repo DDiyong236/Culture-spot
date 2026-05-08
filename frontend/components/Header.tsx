@@ -11,7 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { roleHomeLabel, roleLabel } from "@/lib/utils";
+import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/types";
 
 function getNavItems(role?: UserRole) {
@@ -90,13 +90,6 @@ export default function Header() {
 
           {hydrated && user ? (
             <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/dashboard"
-                className="focus-ring inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-bold text-primary shadow-sm transition hover:border-accent"
-              >
-                <UserRound size={16} aria-hidden="true" />
-                {roleHomeLabel(user.role)}
-              </Link>
               <span className="rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white">
                 {roleLabel(user.role)}
               </span>

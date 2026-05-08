@@ -3,7 +3,6 @@ import {
   Brush,
   Coffee,
   MapPin,
-  Music,
   ScanLine,
   Sparkles,
   Store,
@@ -203,25 +202,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-line bg-primary py-14 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="max-w-2xl">
-            <p className="flex items-center gap-2 text-sm font-semibold text-white/78">
-              <Music size={17} aria-hidden="true" />
-              MVP 핵심 흐름
-            </p>
-            <h2 className="mt-2 text-3xl font-bold">
-              카페가 공간을 등록하고, 창작자가 신청하면, 주민은 동네 이벤트를 발견합니다.
-            </h2>
-          </div>
-          <Link
-            href="/creators"
-            className="focus-ring inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-accent/90"
-          >
-            창작자 매칭 체험하기
-          </Link>
-        </div>
-      </section>
     </>
   );
 }
