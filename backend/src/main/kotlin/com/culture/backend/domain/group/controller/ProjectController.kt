@@ -4,6 +4,8 @@ import com.culture.backend.domain.group.Entity.Project
 import com.culture.backend.domain.group.dto.ProjectRequest
 import com.culture.backend.domain.group.service.ProjectService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,15 +16,16 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/projects")
+@CrossOrigin(origins = ["http://localhost:3000"])
 class ProjectController (
     private val projectService: ProjectService
 ){
     @PostMapping
     fun registerProject(
         @RequestBody request: ProjectRequest,
-        @RequestParam creatorId: Long
+        @AuthenticationPrincipal userId: Long
     ): ResponseEntity<Long> {
-        val projectId = projectService.registerProject(request, creatorId)
+        val projectId = projectService.registerProject(request, userId)
         return ResponseEntity.ok(projectId)
     }
 
