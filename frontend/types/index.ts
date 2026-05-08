@@ -53,6 +53,7 @@ export type CafeSpace = {
   pricePerHour?: number;
   atmosphere: string;
   image: string;
+  images?: string[];
   utilizationRate: number;
 };
 

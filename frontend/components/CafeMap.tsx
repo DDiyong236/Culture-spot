@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapPin, Navigation, Users, Volume2 } from "lucide-react";
 import { cafeSpaces } from "@/data/mock";
 import {
@@ -11,133 +11,17 @@ import {
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import { cn, eventTypeLabel, formatPrice, noiseLabel } from "@/lib/utils";
 import type { CafeSpace } from "@/types";
-
-type MapStatus = "loading" | "ready" | "missing-key" | "error";
+import type { LayerGroup, Map as LeafletMap } from "leaflet";
 
 type CafeMapItem = CafeSpace & {
   coordinate: CafeCoordinate;
 };
 
-type KakaoLatLng = {
-  getLat(): number;
-  getLng(): number;
-};
+type LeafletModule = typeof import("leaflet");
 
-type KakaoMapInstance = {
-  panTo(position: KakaoLatLng): void;
-  relayout(): void;
-};
-
-type KakaoMarker = {
-  setMap(map: KakaoMapInstance | null): void;
-};
-
-type KakaoInfoWindow = {
-  setContent(content: string): void;
-  open(map: KakaoMapInstance, marker: KakaoMarker): void;
-};
-
-type KakaoMaps = {
-  load(callback: () => void): void;
-  LatLng: new (lat: number, lng: number) => KakaoLatLng;
-  Map: new (
-    container: HTMLElement,
-    options: { center: KakaoLatLng; level: number },
-  ) => KakaoMapInstance;
-  Marker: new (options: {
-    map: KakaoMapInstance;
-    position: KakaoLatLng;
-    title: string;
-  }) => KakaoMarker;
-  InfoWindow: new (options: { content: string; removable?: boolean }) => KakaoInfoWindow;
-  event: {
-    addListener(target: unknown, type: string, handler: () => void): void;
-  };
-};
-
-declare global {
-  interface Window {
-    kakao?: {
-      maps: KakaoMaps;
-    };
-  }
-}
-
-const KAKAO_MAP_SCRIPT_ID = "kakao-map-sdk";
-const KOREA_FALLBACK_BOUNDS = {
-  minLat: 33.05,
-  maxLat: 38.65,
-  minLng: 125.8,
-  maxLng: 130.25,
-};
-
-function loadKakaoMapSdk(appKey: string) {
-  return new Promise<void>((resolve, reject) => {
-    if (window.kakao?.maps) {
-      window.kakao.maps.load(resolve);
-      return;
-    }
-
-    const existingScript = document.getElementById(
-      KAKAO_MAP_SCRIPT_ID,
-    ) as HTMLScriptElement | null;
-
-    const handleLoad = () => {
-      if (!window.kakao?.maps) {
-        reject(new Error("Kakao Maps SDK did not initialize."));
-        return;
-      }
-      window.kakao.maps.load(resolve);
-    };
-
-    if (existingScript) {
-      existingScript.addEventListener("load", handleLoad, { once: true });
-      existingScript.addEventListener(
-        "error",
-        () => reject(new Error("Failed to load Kakao Maps SDK.")),
-        { once: true },
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = KAKAO_MAP_SCRIPT_ID;
-    script.async = true;
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(
-      appKey,
-    )}&autoload=false`;
-    script.addEventListener("load", handleLoad, { once: true });
-    script.addEventListener(
-      "error",
-      () => reject(new Error("Failed to load Kakao Maps SDK.")),
-      { once: true },
-    );
-
-    document.head.appendChild(script);
-  });
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function getInfoWindowContent(cafe: CafeMapItem) {
-  return `
-    <div style="padding:10px 12px;color:#5f493f;font-size:13px;line-height:1.45;white-space:nowrap;">
-      <strong style="display:block;color:#3f2f28;font-size:14px;">${escapeHtml(
-        cafe.name,
-      )}</strong>
-      <span>${escapeHtml(cafe.region)} · ${escapeHtml(
-        formatPrice(cafe.priceType, cafe.pricePerHour),
-      )}</span>
-    </div>
-  `;
-}
+const TILE_LAYER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_LAYER_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -159,83 +43,66 @@ function dedupeCafes(cafes: CafeSpace[]) {
   });
 }
 
-function getFallbackMarkerPosition(coordinate: CafeCoordinate) {
-  const left =
-    ((coordinate.lng - KOREA_FALLBACK_BOUNDS.minLng) /
-      (KOREA_FALLBACK_BOUNDS.maxLng - KOREA_FALLBACK_BOUNDS.minLng)) *
-    100;
-  const top =
-    (1 -
-      (coordinate.lat - KOREA_FALLBACK_BOUNDS.minLat) /
-        (KOREA_FALLBACK_BOUNDS.maxLat - KOREA_FALLBACK_BOUNDS.minLat)) *
-    100;
-
-  return {
-    left: `${Math.min(Math.max(left, 4), 96)}%`,
-    top: `${Math.min(Math.max(top, 4), 96)}%`,
-  };
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function FallbackMapLayer({
-  cafes,
-  selectedCafeId,
-  status,
-  onSelect,
-}: {
-  cafes: CafeMapItem[];
-  selectedCafeId: string;
-  status: MapStatus;
-  onSelect: (id: string) => void;
-}) {
-  const statusLabel =
-    status === "missing-key"
-      ? "NEXT_PUBLIC_KAKAO_MAP_APP_KEY 필요"
-      : status === "error"
-        ? "지도를 불러오지 못했습니다"
-        : "지도 불러오는 중";
-
-  return (
-    <div className="absolute inset-0 overflow-hidden bg-[#dfe7dc]">
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(88,121,106,0.14)_1px,transparent_1px),linear-gradient(rgba(88,121,106,0.14)_1px,transparent_1px)] bg-[size:72px_72px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(103,142,120,0.18)_0_18%,transparent_18%_42%,rgba(86,130,151,0.16)_42%_56%,transparent_56%_100%)]" />
-      <div className="absolute right-4 top-4 rounded-lg border border-white/80 bg-white/90 px-3 py-2 text-xs font-bold text-primary shadow-soft">
-        {statusLabel}
-      </div>
-
-      {cafes.map((cafe) => {
-        const selected = cafe.id === selectedCafeId;
-
-        return (
-          <button
-            key={cafe.id}
-            type="button"
-            aria-label={`${cafe.name} 위치 보기`}
-            onClick={() => onSelect(cafe.id)}
-            className={cn(
-              "focus-ring absolute z-10 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent shadow-soft transition",
-              selected && "size-6 bg-primary",
-            )}
-            style={getFallbackMarkerPosition(cafe.coordinate)}
-          />
-        );
-      })}
+function getPopupContent(cafe: CafeMapItem) {
+  return `
+    <div style="min-width:160px;color:#5f493f;font-size:13px;line-height:1.45;">
+      <strong style="display:block;color:#3f2f28;font-size:14px;">${escapeHtml(
+        cafe.name,
+      )}</strong>
+      <span>${escapeHtml(cafe.region)} · ${escapeHtml(
+        formatPrice(cafe.priceType, cafe.pricePerHour),
+      )}</span>
+      <span style="display:block;margin-top:4px;color:rgba(47,39,35,0.7);">${escapeHtml(
+        cafe.address,
+      )}</span>
     </div>
-  );
+  `;
+}
+
+function createMarkerIcon(leaflet: LeafletModule, selected: boolean) {
+  const size = selected ? 28 : 18;
+
+  return leaflet.divIcon({
+    className: "",
+    html: `<span style="
+      display:block;
+      width:${size}px;
+      height:${size}px;
+      border-radius:9999px;
+      border:3px solid #fff;
+      background:${selected ? "#5f493f" : "#f37338"};
+      box-shadow:0 10px 24px rgba(47,39,35,0.2);
+    "></span>`,
+    iconAnchor: [size / 2, size / 2],
+    iconSize: [size, size],
+  });
 }
 
 export default function CafeMap() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<KakaoMapInstance | null>(null);
-  const markersRef = useRef<KakaoMarker[]>([]);
-  const markerByIdRef = useRef<Record<string, KakaoMarker>>({});
-  const infoWindowRef = useRef<KakaoInfoWindow | null>(null);
-  const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY;
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
+  const markerLayerRef = useRef<LayerGroup | null>(null);
+  const leafletRef = useRef<LeafletModule | null>(null);
+  const fittedCafeCountRef = useRef(0);
+  const shouldFocusSelectedCafeRef = useRef(false);
 
   const [registeredCafes, setRegisteredCafes] = useState<CafeSpace[]>([]);
   const [selectedCafeId, setSelectedCafeId] = useState(cafeSpaces[0]?.id ?? "");
-  const [status, setStatus] = useState<MapStatus>(
-    appKey ? "loading" : "missing-key",
-  );
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  const selectCafe = useCallback((id: string) => {
+    shouldFocusSelectedCafeRef.current = true;
+    setSelectedCafeId(id);
+  }, []);
 
   useEffect(() => {
     setRegisteredCafes(readStorage<CafeSpace[]>(CAFE_CARD_STORAGE_KEY, []));
@@ -253,108 +120,104 @@ export default function CafeMap() {
   }, [cafes, selectedCafeId]);
 
   useEffect(() => {
-    if (!appKey) {
-      setStatus("missing-key");
-      return;
-    }
-
     let cancelled = false;
-    setStatus("loading");
 
-    loadKakaoMapSdk(appKey)
-      .then(() => {
-        const kakaoMaps = window.kakao?.maps;
-        if (!kakaoMaps || !mapRef.current || cancelled) return;
+    import("leaflet").then((leaflet) => {
+      if (cancelled || !mapRef.current || mapInstanceRef.current) return;
 
-        const map = new kakaoMaps.Map(mapRef.current, {
-          center: new kakaoMaps.LatLng(koreaMapCenter.lat, koreaMapCenter.lng),
-          level: 13,
-        });
-        const nextMarkers: KakaoMarker[] = [];
-        const nextMarkerById: Record<string, KakaoMarker> = {};
-        const infoWindow = new kakaoMaps.InfoWindow({
-          content: "",
-          removable: false,
-        });
+      leafletRef.current = leaflet;
+      const map = leaflet
+        .map(mapRef.current, {
+          zoomControl: false,
+          scrollWheelZoom: true,
+        })
+        .setView([koreaMapCenter.lat, koreaMapCenter.lng], 7);
 
-        cafes.forEach((cafe) => {
-          const position = new kakaoMaps.LatLng(
-            cafe.coordinate.lat,
-            cafe.coordinate.lng,
-          );
-          const marker = new kakaoMaps.Marker({
-            map,
-            position,
-            title: cafe.name,
-          });
+      leaflet.control.zoom({ position: "bottomright" }).addTo(map);
+      leaflet
+        .tileLayer(TILE_LAYER_URL, {
+          attribution: TILE_LAYER_ATTRIBUTION,
+          maxZoom: 19,
+        })
+        .addTo(map);
 
-          kakaoMaps.event.addListener(marker, "click", () => {
-            setSelectedCafeId(cafe.id);
-            infoWindow.setContent(getInfoWindowContent(cafe));
-            infoWindow.open(map, marker);
-            map.panTo(position);
-          });
-
-          nextMarkers.push(marker);
-          nextMarkerById[cafe.id] = marker;
-        });
-
-        mapInstanceRef.current = map;
-        markersRef.current = nextMarkers;
-        markerByIdRef.current = nextMarkerById;
-        infoWindowRef.current = infoWindow;
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
+      markerLayerRef.current = leaflet.layerGroup().addTo(map);
+      mapInstanceRef.current = map;
+      setIsMapReady(true);
+    });
 
     return () => {
       cancelled = true;
-      markersRef.current.forEach((marker) => marker.setMap(null));
-      markersRef.current = [];
-      markerByIdRef.current = {};
+      markerLayerRef.current = null;
+      mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
-      infoWindowRef.current = null;
+      leafletRef.current = null;
+      fittedCafeCountRef.current = 0;
     };
-  }, [appKey, cafes]);
+  }, []);
+
+  useEffect(() => {
+    const leaflet = leafletRef.current;
+    const map = mapInstanceRef.current;
+    const markerLayer = markerLayerRef.current;
+
+    if (!leaflet || !map || !markerLayer) return;
+
+    markerLayer.clearLayers();
+
+    cafes.forEach((cafe) => {
+      const selected = cafe.id === selectedCafe?.id;
+      const marker = leaflet
+        .marker([cafe.coordinate.lat, cafe.coordinate.lng], {
+          icon: createMarkerIcon(leaflet, selected),
+          title: cafe.name,
+        })
+        .bindPopup(getPopupContent(cafe));
+
+      marker.on("click", () => {
+        selectCafe(cafe.id);
+      });
+      marker.addTo(markerLayer);
+    });
+
+    if (cafes.length && fittedCafeCountRef.current !== cafes.length) {
+      const bounds = leaflet.latLngBounds(
+        cafes.map((cafe) => [cafe.coordinate.lat, cafe.coordinate.lng]),
+      );
+      map.fitBounds(bounds, {
+        maxZoom: 13,
+        paddingTopLeft: [420, 32],
+        paddingBottomRight: [32, 32],
+      });
+      fittedCafeCountRef.current = cafes.length;
+    }
+  }, [cafes, isMapReady, selectCafe, selectedCafe]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
-    const kakaoMaps = window.kakao?.maps;
-    const marker = markerByIdRef.current[selectedCafe?.id ?? ""];
+    if (!map || !selectedCafe || !isMapReady) return;
+    if (!shouldFocusSelectedCafeRef.current) return;
 
-    if (!map || !kakaoMaps || !selectedCafe || !marker) return;
+    shouldFocusSelectedCafeRef.current = false;
 
-    const position = new kakaoMaps.LatLng(
-      selectedCafe.coordinate.lat,
-      selectedCafe.coordinate.lng,
-    );
-    infoWindowRef.current?.setContent(getInfoWindowContent(selectedCafe));
-    infoWindowRef.current?.open(map, marker);
-    map.panTo(position);
-  }, [selectedCafe, status]);
-
-  useEffect(() => {
-    const handleResize = () => mapInstanceRef.current?.relayout();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    map.flyTo([selectedCafe.coordinate.lat, selectedCafe.coordinate.lng], 14, {
+      duration: 0.6,
+    });
+  }, [isMapReady, selectedCafe]);
 
   return (
     <section className="relative h-[calc(100svh-4.5rem)] min-h-[560px] overflow-hidden bg-[#dfe7dc]">
-      <div ref={mapRef} className="absolute inset-0" aria-label="카페 지도" />
+      <div
+        ref={mapRef}
+        className="absolute inset-0 z-0"
+        aria-label="OpenStreetMap 카페 지도"
+      />
+      <div className="pointer-events-none absolute inset-0 z-10 bg-background/10" />
+      <div className="pointer-events-none absolute right-4 top-4 z-20 rounded-lg border border-white/80 bg-white/90 px-3 py-2 text-xs font-bold text-primary shadow-soft">
+        OpenStreetMap
+      </div>
 
-      {status !== "ready" ? (
-        <FallbackMapLayer
-          cafes={cafes}
-          selectedCafeId={selectedCafe?.id ?? selectedCafeId}
-          status={status}
-          onSelect={setSelectedCafeId}
-        />
-      ) : null}
-
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/10 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-black/10 to-transparent" />
 
       <aside className="absolute inset-x-3 bottom-3 z-20 flex max-h-[46vh] flex-col overflow-hidden rounded-lg border border-line/80 bg-background/95 shadow-soft backdrop-blur md:bottom-4 md:left-4 md:right-auto md:top-4 md:max-h-none md:w-[24rem]">
         <div className="border-b border-line px-4 py-4">
@@ -388,7 +251,7 @@ export default function CafeMap() {
               <button
                 key={cafe.id}
                 type="button"
-                onClick={() => setSelectedCafeId(cafe.id)}
+                onClick={() => selectCafe(cafe.id)}
                 className={cn(
                   "focus-ring w-full rounded-lg border bg-white p-3 text-left shadow-sm transition",
                   selected

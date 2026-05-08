@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Coffee, Heart, Palette, Store } from "lucide-react";
+import { ArrowRight, Check, Coffee, Heart, Palette, Store } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -16,26 +16,23 @@ const roleOptions: Array<{
 }> = [
   {
     role: "consumer",
-    title: "동네 문화 사용자",
-    description:
-      "기본 화면처럼 동네 카페 공간을 탐색하고, 로그인 후 즐겨찾기와 후기를 남깁니다.",
-    points: ["카페 즐겨찾기", "아티스트 저장", "후기 작성"],
+    title: "사용자",
+    description: "동네 카페 공간과 아티스트를 둘러봅니다.",
+    points: ["공간 탐색", "아티스트 저장", "후기 작성"],
     icon: Heart,
   },
   {
     role: "creator",
     title: "아티스트",
-    description:
-      "프로젝트 정보를 등록하고, 조건에 맞는 동네 카페 공간을 추천받습니다.",
-    points: ["프로젝트 등록", "공간 매칭", "지역 관객 확보"],
+    description: "프로젝트 카드와 협업 신청을 관리합니다.",
+    points: ["프로젝트 관리", "공간 신청", "협업 일정"],
     icon: Palette,
   },
   {
     role: "cafeOwner",
     title: "사장님",
-    description:
-      "영업을 유지한 채 활용 가능한 벽, 코너, 한적한 시간대를 등록합니다.",
-    points: ["카페 공간 등록", "유휴 시간 활용", "문화 브랜딩"],
+    description: "카페 공간과 아티스트 제안을 관리합니다.",
+    points: ["공간 등록", "제안 관리", "협업 운영"],
     icon: Store,
   },
 ];
@@ -44,76 +41,118 @@ export default function OnboardingForm() {
   const router = useRouter();
   const { login, user } = useAuth();
   const [role, setRole] = useState<UserRole>(user?.role ?? "consumer");
-  const [name, setName] = useState(user?.name ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
-
-  const selectedRole = useMemo(
-    () => roleOptions.find((option) => option.role === role)!,
-    [role],
-  );
+  const [identifier, setIdentifier] = useState(user?.email ?? "");
+  const [password, setPassword] = useState("");
+  const [rememberLogin, setRememberLogin] = useState(true);
+  const [demoMode, setDemoMode] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const activeRole = demoMode ? role : "consumer";
+    const safeIdentifier = identifier.trim();
+
     login({
-      role,
-      name: name || roleLabel(role),
-      email: email || `${role}@localstage.kr`,
+      role: activeRole,
+      name: safeIdentifier ? safeIdentifier.split("@")[0] : roleLabel(activeRole),
+      email: safeIdentifier.includes("@")
+        ? safeIdentifier
+        : `${safeIdentifier || activeRole}@localstage.kr`,
     });
     router.push("/dashboard");
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <section className="rounded-lg border border-line bg-white p-6 shadow-soft">
-        <div className="flex size-12 items-center justify-center rounded-lg bg-primary text-white">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto w-full max-w-xl rounded-lg border border-line bg-white p-5 shadow-soft sm:p-6"
+    >
+      <div className="text-center">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-primary text-white">
           <Coffee size={24} aria-hidden="true" />
         </div>
-        <p className="mt-5 text-sm font-semibold text-accent">
-          로그인 및 회원가입
-        </p>
-        <h1 className="mt-2 text-4xl font-bold leading-tight text-ink">
-          어떤 방식으로 Local Stage를 이용하시나요?
-        </h1>
-        <p className="mt-4 text-base leading-7 text-ink/72">
-          지금은 백엔드 없이 역할을 고르는 목 온보딩입니다. 선택한 역할은
-          브라우저에 저장되고, 화면 구성과 주요 행동이 달라집니다.
-        </p>
+      </div>
 
-        <div className="mt-6 rounded-lg border border-line bg-background p-4">
-          <p className="text-sm font-bold text-primary">선택된 화면</p>
-          <h2 className="mt-2 text-2xl font-bold text-ink">
-            {selectedRole.title}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-ink/70">
-            {selectedRole.description}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {selectedRole.points.map((point) => (
-              <span key={point} className="badge">
-                {point}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="mt-6 overflow-hidden rounded-lg border border-line bg-white transition focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(243,115,56,0.14)]">
+        <label className="block border-b border-line">
+          <span className="sr-only">아이디 또는 전화번호</span>
+          <input
+            className="h-16 w-full bg-white px-5 text-base font-semibold text-ink outline-none placeholder:text-ink/45"
+            value={identifier}
+            onChange={(event) => setIdentifier(event.target.value)}
+            placeholder="아이디 또는 전화번호"
+          />
+        </label>
+        <label className="block">
+          <span className="sr-only">비밀번호</span>
+          <input
+            className="h-16 w-full bg-white px-5 text-base font-semibold text-ink outline-none placeholder:text-ink/45"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="비밀번호"
+          />
+        </label>
+      </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-lg border border-line bg-white p-5 shadow-soft"
-      >
-        <fieldset>
-          <legend className="label">역할 선택</legend>
-          <div className="mt-3 grid gap-3">
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <label className="inline-flex cursor-pointer items-center gap-3 text-sm font-bold text-ink/70">
+          <span
+            className={`flex size-7 items-center justify-center rounded-full border ${
+              rememberLogin
+                ? "border-primary bg-primary text-white"
+                : "border-line bg-white text-transparent"
+            }`}
+          >
+            <Check size={16} aria-hidden="true" />
+          </span>
+          <input
+            type="checkbox"
+            checked={rememberLogin}
+            onChange={(event) => setRememberLogin(event.target.checked)}
+            className="sr-only"
+          />
+          로그인 상태 유지
+        </label>
+
+        <label className="inline-flex cursor-pointer items-center justify-between gap-3 text-sm font-bold text-ink/70">
+          <span>시연 모드</span>
+          <span
+            className={`relative h-8 w-16 rounded-full p-1 transition ${
+              demoMode ? "bg-primary" : "bg-ink/30"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={demoMode}
+              onChange={(event) => setDemoMode(event.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`block size-6 rounded-full bg-white shadow-sm transition ${
+                demoMode ? "translate-x-8" : "translate-x-0"
+              }`}
+            />
+          </span>
+        </label>
+      </div>
+
+      {demoMode ? (
+        <fieldset className="mt-5 rounded-lg border border-line bg-background p-4">
+          <legend className="px-1 text-sm font-bold text-primary">
+            시연 역할 선택
+          </legend>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {roleOptions.map((option) => {
               const Icon = option.icon;
               const active = role === option.role;
+
               return (
                 <label
                   key={option.role}
                   className={`cursor-pointer rounded-lg border p-4 transition ${
                     active
-                      ? "border-accent bg-accent/10 shadow-soft"
-                      : "border-line bg-background hover:border-accent"
+                      ? "border-primary bg-white shadow-soft"
+                      : "border-line bg-white hover:border-primary"
                   }`}
                 >
                   <input
@@ -124,10 +163,10 @@ export default function OnboardingForm() {
                     onChange={() => setRole(option.role)}
                     className="sr-only"
                   />
-                  <span className="flex items-start gap-3">
+                  <span className="flex flex-col gap-3">
                     <span
-                      className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
-                        active ? "bg-accent text-white" : "bg-white text-primary"
+                      className={`flex size-10 items-center justify-center rounded-lg ${
+                        active ? "bg-primary text-white" : "bg-background text-primary"
                       }`}
                     >
                       <Icon size={20} aria-hidden="true" />
@@ -136,8 +175,11 @@ export default function OnboardingForm() {
                       <span className="block font-bold text-ink">
                         {option.title}
                       </span>
-                      <span className="mt-1 block text-sm leading-6 text-ink/68">
+                      <span className="mt-1 block text-xs leading-5 text-ink/62">
                         {option.description}
+                      </span>
+                      <span className="mt-2 block text-[11px] font-bold text-primary/72">
+                        {option.points.join(" · ")}
                       </span>
                     </span>
                   </span>
@@ -146,36 +188,29 @@ export default function OnboardingForm() {
             })}
           </div>
         </fieldset>
+      ) : null}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <label className="space-y-1.5">
-            <span className="label">이름</span>
-            <input
-              className="form-field"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="예: 김로컬"
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="label">이메일</span>
-            <input
-              className="form-field"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="local@example.com"
-            />
-          </label>
-        </div>
+      <button
+        type="submit"
+        className="focus-ring mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-white shadow-soft transition hover:bg-primary/90"
+      >
+        {demoMode ? `${roleLabel(role)}로 로그인` : "로그인"}
+        <ArrowRight size={20} aria-hidden="true" />
+      </button>
 
-        <button
-          type="submit"
-          className="focus-ring mt-6 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
-        >
-          {roleLabel(role)}로 시작하기
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold text-ink/54">
+        <button type="button" className="transition hover:text-primary">
+          아이디 찾기
         </button>
-      </form>
-    </div>
+        <span className="h-3 w-px bg-line" />
+        <button type="button" className="transition hover:text-primary">
+          비밀번호 찾기
+        </button>
+        <span className="h-3 w-px bg-line" />
+        <button type="button" className="transition hover:text-primary">
+          회원가입
+        </button>
+      </div>
+    </form>
   );
 }

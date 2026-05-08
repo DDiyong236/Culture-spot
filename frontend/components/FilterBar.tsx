@@ -87,7 +87,7 @@ export default function FilterBar({
         </label>
 
         <label className="space-y-1.5">
-          <span className="label">동네</span>
+          <span className="label">동</span>
           <select
             className="form-field"
             value={filters.region}
@@ -97,7 +97,7 @@ export default function FilterBar({
             }
           >
             <option value="all">
-              {regionDisabled ? "시/군/구를 먼저 선택" : "전체 동네"}
+              {regionDisabled ? "시/군/구를 먼저 선택" : "전체 동"}
             </option>
             {locationOptions.regions.map((region) => (
               <option key={region} value={region}>

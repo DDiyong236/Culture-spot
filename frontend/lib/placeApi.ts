@@ -188,6 +188,8 @@ export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
     eventTypes.includes("pop-up") ||
     includesAny(description, ["코너", "선반", "진열", "팝업"]);
 
+  const image = place.thumbnailUrl || fallbackImage(eventTypes);
+
   return {
     id,
     name: place.title,
@@ -215,7 +217,8 @@ export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
       noiseTolerance === "low"
         ? "조용한 카페 운영형 문화 공간"
         : "유연하게 협업 가능한 카페 문화 공간",
-    image: place.thumbnailUrl || fallbackImage(eventTypes),
+    image,
+    images: [image],
     utilizationRate: stableUtilization(id),
   };
 }

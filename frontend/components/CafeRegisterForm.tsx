@@ -37,11 +37,14 @@ type CafeFormState = {
   preferredEventTypes: EventType[];
   priceType: PriceType;
   pricePerHour: number;
-  spaceImage: string;
+  spaceImages: string[];
+  spaceImageUrl: string;
   description: string;
 };
 
 const provinceOptions = getProvinceOptions();
+const fallbackSpaceImage =
+  "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80";
 
 function buildAddress(form: CafeFormState) {
   return [
@@ -73,6 +76,15 @@ function recommendEventTypes(form: CafeFormState) {
   return Array.from(recommendations);
 }
 
+function readImageFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function CafeRegisterForm() {
   const router = useRouter();
   const [form, setForm] = useState<CafeFormState>({
@@ -88,7 +100,8 @@ export default function CafeRegisterForm() {
     preferredEventTypes: ["exhibition"],
     priceType: "free",
     pricePerHour: 0,
-    spaceImage: "",
+    spaceImages: [],
+    spaceImageUrl: "",
     description: "",
   });
 
@@ -121,6 +134,24 @@ export default function CafeRegisterForm() {
     );
   }
 
+  function addSpaceImageUrl() {
+    const nextImage = form.spaceImageUrl.trim();
+    if (!nextImage) return;
+
+    setForm((current) => ({
+      ...current,
+      spaceImages: Array.from(new Set([...current.spaceImages, nextImage])),
+      spaceImageUrl: "",
+    }));
+  }
+
+  function removeSpaceImage(image: string) {
+    setForm((current) => ({
+      ...current,
+      spaceImages: current.spaceImages.filter((item) => item !== image),
+    }));
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const address = buildAddress(form);
@@ -133,6 +164,9 @@ export default function CafeRegisterForm() {
     const hasCornerSpace = availableTypes.includes("pop-up");
     const allowsPerformance =
       availableTypes.includes("performance") && form.noiseTolerance !== "low";
+    const spaceImages = form.spaceImages.length
+      ? form.spaceImages
+      : [fallbackSpaceImage];
 
     const savedCafe: CafeSpace = {
       id: `registered-cafe-${Date.now()}`,
@@ -160,9 +194,8 @@ export default function CafeRegisterForm() {
         form.noiseTolerance === "low"
           ? "조용하고 카페 본연의 분위기를 살린 갤러리형 공간"
           : "따뜻하고 유연한 커뮤니티형 공간",
-      image:
-        form.spaceImage ||
-        "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80",
+      image: spaceImages[0],
+      images: spaceImages,
       utilizationRate: 0,
     };
 
@@ -257,7 +290,7 @@ export default function CafeRegisterForm() {
             </select>
           </label>
           <label className="space-y-1.5">
-            <span className="label">동네</span>
+            <span className="label">동</span>
             <select
               className="form-field"
               value={form.neighborhood}
@@ -265,7 +298,7 @@ export default function CafeRegisterForm() {
               onChange={(event) => update("neighborhood", event.target.value)}
             >
               <option value="">
-                {form.city ? "동네 선택" : "시군구를 먼저 선택"}
+                {form.city ? "동 선택" : "시군구를 먼저 선택"}
               </option>
               {neighborhoodOptions.map((neighborhood) => (
                 <option key={neighborhood} value={neighborhood}>
@@ -345,48 +378,85 @@ export default function CafeRegisterForm() {
           ) : null}
         </div>
 
-        <label className="mt-4 block space-y-1.5">
+        <div className="mt-4 space-y-1.5">
           <span className="label">공간 이미지</span>
           <div className="grid gap-4 rounded-lg border border-dashed border-line bg-background p-4 lg:grid-cols-[0.42fr_0.58fr]">
-            <div className="overflow-hidden rounded-lg border border-line bg-white">
-              <img
-                src={
-                  form.spaceImage ||
-                  "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80"
-                }
-                alt="등록할 카페 공간 사진"
-                className="h-44 w-full object-cover"
-              />
+            <div className="grid gap-2">
+              {(form.spaceImages.length
+                ? form.spaceImages
+                : [fallbackSpaceImage]
+              ).map((image, index) => (
+                <div
+                  key={`${image}-${index}`}
+                  className="relative overflow-hidden rounded-lg border border-line bg-white"
+                >
+                  <img
+                    src={image}
+                    alt={`등록할 카페 공간 사진 ${index + 1}`}
+                    className="h-32 w-full object-cover"
+                  />
+                  {form.spaceImages.length ? (
+                    <button
+                      type="button"
+                      onClick={() => removeSpaceImage(image)}
+                      className="absolute right-2 top-2 rounded-full bg-white/92 px-2.5 py-1 text-xs font-bold text-primary shadow-sm"
+                    >
+                      삭제
+                    </button>
+                  ) : null}
+                  {index === 0 ? (
+                    <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-white">
+                      대표
+                    </span>
+                  ) : null}
+                </div>
+              ))}
             </div>
             <div className="flex flex-col justify-center gap-3">
               <div className="flex items-center gap-2 text-primary">
                 <ImagePlus size={18} aria-hidden="true" />
                 <span className="text-sm font-bold">
-                  아티스트가 확인할 공간 사진을 넣어주세요
+                  아티스트가 확인할 공간 사진을 여러 장 넣어주세요
                 </span>
               </div>
               <input
                 className="form-field file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
                 type="file"
                 accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) update("spaceImage", URL.createObjectURL(file));
+                multiple
+                onChange={async (event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  if (!files.length) return;
+                  const imageUrls = await Promise.all(files.map(readImageFile));
+                  setForm((current) => ({
+                    ...current,
+                    spaceImages: [...current.spaceImages, ...imageUrls],
+                  }));
+                  event.target.value = "";
                 }}
               />
-              <input
-                className="form-field"
-                value={form.spaceImage}
-                onChange={(event) => update("spaceImage", event.target.value)}
-                placeholder="또는 https:// 이미지 주소"
-              />
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input
+                  className="form-field"
+                  value={form.spaceImageUrl}
+                  onChange={(event) => update("spaceImageUrl", event.target.value)}
+                  placeholder="또는 https:// 이미지 주소"
+                />
+                <button
+                  type="button"
+                  onClick={addSpaceImageUrl}
+                  className="focus-ring rounded-lg border border-line bg-white px-4 py-2 text-sm font-bold text-primary transition hover:border-accent"
+                >
+                  추가
+                </button>
+              </div>
               <p className="text-xs leading-5 text-ink/58">
                 벽면, 코너, 작은 무대처럼 활용될 실제 카페 공간이 보이는
-                이미지를 권장합니다.
+                이미지를 권장합니다. 첫 번째 이미지가 대표 이미지로 사용됩니다.
               </p>
             </div>
           </div>
-        </label>
+        </div>
 
         <fieldset className="mt-4">
           <legend className="label">희망 이벤트 유형</legend>

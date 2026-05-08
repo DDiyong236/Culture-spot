@@ -5,17 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
-  Coffee,
   FileText,
   Inbox,
   MapPin,
-  MessageSquareText,
   Palette,
   Star,
   Store,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import StatCard from "@/components/StatCard";
 import { cafeSpaces, creators } from "@/data/mock";
 import {
   CAFE_APPLICATION_STORAGE_KEY,
@@ -136,160 +133,42 @@ function ConsumerDashboard() {
         .slice(0, 3),
     [allCreators, favoriteCreatorIds],
   );
+  const featuredCafe = recommendedCafes[0] ?? allCafes[0];
+  const featuredCreator = recommendedCreators[0] ?? allCreators[0];
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard
-          label="관심 카페"
-          value={favoriteCafes.length}
-          helper="저장한 카페 공간"
-          icon={<Coffee size={20} aria-hidden="true" />}
-        />
-        <StatCard
-          label="관심 아티스트"
-          value={favoriteCreators.length}
-          helper="저장한 아티스트"
-          icon={<Palette size={20} aria-hidden="true" />}
-        />
-        <StatCard
-          label="후기"
-          value={reviews.length}
-          helper="작성한 리뷰"
-          icon={<MessageSquareText size={20} aria-hidden="true" />}
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-ink">내 관심 카페</h2>
-            <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
-              {favoriteCafes.length}곳
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {favoriteCafes.length ? (
-              favoriteCafes.map((cafe) => (
-                <Link
-                  key={cafe.id}
-                  href={`/cafes/${cafe.id}`}
-                  className="focus-ring overflow-hidden rounded-lg border border-line bg-background transition hover:border-accent hover:bg-white"
-                >
-                  <img
-                    src={cafe.image}
-                    alt={`${cafe.name} 공간 이미지`}
-                    className="h-32 w-full object-cover"
-                  />
-                  <div className="p-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-bold text-primary">{cafe.name}</p>
-                      {cafe.availableTypes.slice(0, 2).map((type) => (
-                        <span key={type} className="badge">
-                          {eventTypeLabel(type)}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/64">
-                      <MapPin size={14} className="text-sage" aria-hidden="true" />
-                      {cafe.region}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="rounded-lg border border-dashed border-line bg-background p-5 md:col-span-2">
-                <p className="font-bold text-primary">저장한 카페가 없습니다.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-ink">내 관심 아티스트</h2>
-            <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
-              {favoriteCreators.length}명
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {favoriteCreators.length ? (
-              favoriteCreators.map((creator) => (
-                <Link
-                  key={creator.id}
-                  href={`/creators/${creator.id}`}
-                  className="focus-ring rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold text-primary">
-                        {creator.projectTitle}
-                      </p>
-                      <p className="mt-1 text-sm text-ink/64">
-                        {creator.name} · {creator.genre}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-mist px-2.5 py-1 text-xs font-bold text-primary">
-                      {eventTypeLabel(creator.eventType)}
-                    </span>
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-ink/70">
-                    {creator.introduction}
-                  </p>
-                </Link>
-              ))
-            ) : (
-              <div className="rounded-lg border border-dashed border-line bg-background p-5 md:col-span-2">
-                <p className="font-bold text-primary">
-                  저장한 아티스트가 없습니다.
+    <div className="grid gap-6 xl:grid-cols-[0.66fr_0.34fr]">
+      <section className="space-y-6">
+        {featuredCafe ? (
+          <Link
+            href={`/cafes/${featuredCafe.id}`}
+            className="focus-ring group block overflow-hidden rounded-lg border border-line bg-white shadow-soft"
+          >
+            <div className="relative h-72">
+              <img
+                src={featuredCafe.image}
+                alt={`${featuredCafe.name} 추천 공간 이미지`}
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                <p className="text-sm font-bold text-white/80">오늘의 동네 문화</p>
+                <h2 className="mt-2 text-3xl font-bold">
+                  {featuredCafe.name}
+                </h2>
+                <p className="mt-2 flex items-center gap-2 text-sm text-white/82">
+                  <MapPin size={16} aria-hidden="true" />
+                  {featuredCafe.region} · {featuredCafe.address}
                 </p>
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[0.42fr_0.58fr]">
-        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-ink">내 후기</h2>
-            <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
-              {reviews.length}개
-            </span>
-          </div>
-          <div className="mt-4 space-y-3">
-            {reviews.length ? (
-              reviews.slice(0, 5).map((review) => (
-                <article
-                  key={review.id}
-                  className="rounded-lg border border-line bg-background p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-bold text-primary">{review.targetName}</p>
-                    <p className="inline-flex items-center gap-1 text-sm font-bold text-accent">
-                      <Star size={14} className="fill-current" aria-hidden="true" />
-                      {review.rating}점
-                    </p>
-                  </div>
-                  {review.photoUrl ? (
-                    <img
-                      src={review.photoUrl}
-                      alt={`${review.targetName} 후기 사진`}
-                      className="mt-3 h-32 w-full rounded-lg border border-line object-cover"
-                    />
-                  ) : null}
-                  <p className="mt-2 text-sm leading-6 text-ink/70">
-                    {review.content}
+                {featuredCreator ? (
+                  <p className="mt-4 inline-flex rounded-full bg-white/92 px-3 py-1 text-sm font-bold text-primary">
+                    {featuredCreator.projectTitle} · {featuredCreator.genre}
                   </p>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-lg border border-dashed border-line bg-background p-5">
-                <p className="font-bold text-primary">작성한 후기가 없습니다.</p>
+                ) : null}
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </Link>
+        ) : null}
 
         <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
           <div className="flex items-center justify-between gap-3">
@@ -317,9 +196,7 @@ function ConsumerDashboard() {
                     className="h-28 w-full object-cover"
                   />
                   <div className="p-4">
-                    <p className="text-xs font-bold text-accent">
-                      {cafe.region}
-                    </p>
+                    <p className="text-xs font-bold text-accent">{cafe.region}</p>
                     <p className="mt-1 font-bold text-primary">{cafe.name}</p>
                     {creator ? (
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink/70">
@@ -332,7 +209,108 @@ function ConsumerDashboard() {
             })}
           </div>
         </section>
-      </div>
+      </section>
+
+      <aside className="space-y-6">
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <h2 className="text-xl font-bold text-ink">내 동네 문화</h2>
+          <div className="mt-4 grid gap-3">
+            <article className="rounded-lg border border-line bg-background p-4">
+              <p className="text-sm font-semibold text-primary/70">관심 카페</p>
+              <p className="mt-1 text-3xl font-bold text-ink">
+                {favoriteCafes.length}
+              </p>
+            </article>
+            <article className="rounded-lg border border-line bg-background p-4">
+              <p className="text-sm font-semibold text-primary/70">
+                관심 아티스트
+              </p>
+              <p className="mt-1 text-3xl font-bold text-ink">
+                {favoriteCreators.length}
+              </p>
+            </article>
+            <article className="rounded-lg border border-line bg-background p-4">
+              <p className="text-sm font-semibold text-primary/70">내 후기</p>
+              <p className="mt-1 text-3xl font-bold text-ink">{reviews.length}</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-ink">관심 목록</h2>
+            <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
+              {favoriteCafes.length + favoriteCreators.length}개
+            </span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {[...favoriteCafes.slice(0, 2), ...favoriteCreators.slice(0, 2)].length ? (
+              <>
+                {favoriteCafes.slice(0, 2).map((cafe) => (
+                  <Link
+                    key={cafe.id}
+                    href={`/cafes/${cafe.id}`}
+                    className="focus-ring block rounded-lg border border-line bg-background p-3 transition hover:border-accent hover:bg-white"
+                  >
+                    <p className="font-bold text-primary">{cafe.name}</p>
+                    <p className="mt-1 text-sm text-ink/64">{cafe.region}</p>
+                  </Link>
+                ))}
+                {favoriteCreators.slice(0, 2).map((creator) => (
+                  <Link
+                    key={creator.id}
+                    href={`/creators/${creator.id}`}
+                    className="focus-ring block rounded-lg border border-line bg-background p-3 transition hover:border-accent hover:bg-white"
+                  >
+                    <p className="font-bold text-primary">{creator.name}</p>
+                    <p className="mt-1 text-sm text-ink/64">
+                      {creator.projectTitle}
+                    </p>
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-4">
+                <p className="font-bold text-primary">저장한 관심 목록이 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-ink">최근 후기</h2>
+            <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
+              {reviews.length}개
+            </span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {reviews.length ? (
+              reviews.slice(0, 3).map((review) => (
+                <article
+                  key={review.id}
+                  className="rounded-lg border border-line bg-background p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-bold text-primary">{review.targetName}</p>
+                    <p className="inline-flex items-center gap-1 text-sm font-bold text-accent">
+                      <Star size={14} className="fill-current" aria-hidden="true" />
+                      {review.rating}점
+                    </p>
+                  </div>
+                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink/70">
+                    {review.content}
+                  </p>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-4">
+                <p className="font-bold text-primary">작성한 후기가 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </aside>
     </div>
   );
 }

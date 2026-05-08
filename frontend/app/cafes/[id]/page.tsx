@@ -183,6 +183,8 @@ export default function CafeDetailPage({
     );
   }
 
+  const cafeImages = cafe.images?.length ? cafe.images : [cafe.image];
+
   return (
     <div className="surface-grid min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -196,11 +198,25 @@ export default function CafeDetailPage({
 
         <section className="mt-6 overflow-hidden rounded-lg border border-line bg-white shadow-soft">
           <div className="grid lg:grid-cols-[0.58fr_0.42fr]">
-            <img
-              src={cafe.image}
-              alt={`${cafe.name} 공간 이미지`}
-              className="h-80 w-full object-cover lg:h-full"
-            />
+            <div className="bg-background">
+              <img
+                src={cafeImages[0]}
+                alt={`${cafe.name} 대표 공간 이미지`}
+                className="h-80 w-full object-cover lg:h-[440px]"
+              />
+              {cafeImages.length > 1 ? (
+                <div className="grid grid-cols-3 gap-2 border-t border-line p-2">
+                  {cafeImages.slice(1, 4).map((image, index) => (
+                    <img
+                      key={`${image}-${index}`}
+                      src={image}
+                      alt={`${cafe.name} 추가 공간 이미지 ${index + 2}`}
+                      className="h-24 w-full rounded-md border border-line object-cover"
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <div className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
