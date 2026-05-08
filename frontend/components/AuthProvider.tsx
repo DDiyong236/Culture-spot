@@ -9,6 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  AUTH_TOKENS_KEY,
+  isJwtExpired,
+  refreshAuthSession,
+  type AuthTokens,
+} from "@/lib/authApi";
 import type {
   FavoriteTargetType,
   MockUser,
@@ -23,9 +29,12 @@ type FavoriteTarget = {
 };
 
 type LoginInput = {
+  id?: string;
   name: string;
   email: string;
   role: UserRole;
+  tokens?: AuthTokens;
+  remember?: boolean;
 };
 
 type ReviewInput = {
@@ -39,6 +48,7 @@ type ReviewInput = {
 
 type AuthContextValue = {
   user: MockUser | null;
+  accessToken: string | null;
   hydrated: boolean;
   favorites: string[];
   reviews: Review[];
@@ -75,24 +85,96 @@ function favoriteKey(target: FavoriteTarget) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<MockUser | null>(null);
+  const [tokens, setTokens] = useState<AuthTokens | null>(null);
+  const [persistSession, setPersistSession] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    setUser(readStorage<MockUser | null>(AUTH_USER_KEY, null));
-    setFavorites(readStorage<string[]>(FAVORITES_KEY, []));
-    setReviews(readStorage<Review[]>(REVIEWS_KEY, []));
-    setHydrated(true);
+    let active = true;
+
+    async function restoreSession() {
+      const storedUser = readStorage<MockUser | null>(AUTH_USER_KEY, null);
+      const storedTokens = readStorage<AuthTokens | null>(AUTH_TOKENS_KEY, null);
+
+      setFavorites(readStorage<string[]>(FAVORITES_KEY, []));
+      setReviews(readStorage<Review[]>(REVIEWS_KEY, []));
+
+      if (!storedTokens) {
+        if (active) {
+          setUser(storedUser);
+          setHydrated(true);
+        }
+        return;
+      }
+
+      if (!isJwtExpired(storedTokens.accessToken)) {
+        if (active) {
+          setUser(storedUser);
+          setTokens(storedTokens);
+          setHydrated(true);
+        }
+        return;
+      }
+
+      if (!isJwtExpired(storedTokens.refreshToken)) {
+        try {
+          const refreshed = await refreshAuthSession(
+            storedTokens.refreshToken,
+            storedUser,
+          );
+
+          if (active) {
+            setUser(refreshed.user);
+            setTokens(refreshed.tokens);
+            setHydrated(true);
+          }
+          return;
+        } catch {
+          window.localStorage.removeItem(AUTH_USER_KEY);
+          window.localStorage.removeItem(AUTH_TOKENS_KEY);
+        }
+      }
+
+      if (active) {
+        setUser(null);
+        setTokens(null);
+        setHydrated(true);
+      }
+    }
+
+    void restoreSession();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
+    if (!persistSession) {
+      window.localStorage.removeItem(AUTH_USER_KEY);
+      return;
+    }
     if (user) {
       window.localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     } else {
       window.localStorage.removeItem(AUTH_USER_KEY);
     }
-  }, [hydrated, user]);
+  }, [hydrated, persistSession, user]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!persistSession) {
+      window.localStorage.removeItem(AUTH_TOKENS_KEY);
+      return;
+    }
+    if (tokens) {
+      window.localStorage.setItem(AUTH_TOKENS_KEY, JSON.stringify(tokens));
+    } else {
+      window.localStorage.removeItem(AUTH_TOKENS_KEY);
+    }
+  }, [hydrated, persistSession, tokens]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -105,19 +187,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [reviews, hydrated]);
 
   const login = useCallback((input: LoginInput) => {
-    const safeName = input.name.trim() || "로컬 스테이지 사용자";
+    const safeName = input.name.trim() || "컬처 SPOT! 사용자";
     const safeEmail = input.email.trim() || "local@example.com";
 
     setUser({
-      id: `${input.role}-${Date.now()}`,
+      id: input.id ?? `${input.role}-${Date.now()}`,
       name: safeName,
       email: safeEmail,
       role: input.role,
     });
+    setPersistSession(input.remember ?? true);
+    setTokens(input.tokens ?? null);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
+    setTokens(null);
+    setPersistSession(true);
   }, []);
 
   const isFavorite = useCallback(
@@ -165,6 +251,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      accessToken: tokens?.accessToken ?? null,
       hydrated,
       favorites,
       reviews,
@@ -184,6 +271,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       reviews,
+      tokens,
       toggleFavorite,
       user,
     ],

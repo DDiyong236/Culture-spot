@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Coffee, Palette, Store } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
+import { loginUser } from "@/lib/authApi";
 import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/types";
 
@@ -40,24 +42,53 @@ export default function OnboardingForm() {
   const [password, setPassword] = useState("");
   const [rememberLogin, setRememberLogin] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
+  const [status, setStatus] = useState<"idle" | "logging-in" | "error">("idle");
+  const [message, setMessage] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const activeRole = demoMode ? role : "consumer";
     const safeIdentifier = identifier.trim();
 
-    login({
-      role: activeRole,
-      name: safeIdentifier
-        ? safeIdentifier.split("@")[0]
-        : activeRole === "creator"
-          ? "홍길동"
-          : roleLabel(activeRole),
-      email: safeIdentifier.includes("@")
-        ? safeIdentifier
-        : `${safeIdentifier || activeRole}@localstage.kr`,
-    });
-    router.push("/dashboard");
+    if (demoMode) {
+      login({
+        role,
+        name: safeIdentifier
+          ? safeIdentifier.split("@")[0]
+          : role === "creator"
+            ? "홍길동"
+            : roleLabel(role),
+        email: safeIdentifier.includes("@")
+          ? safeIdentifier
+          : `${safeIdentifier || role}@culturespot.kr`,
+        remember: rememberLogin,
+      });
+      router.push("/dashboard");
+      return;
+    }
+
+    setStatus("logging-in");
+    setMessage("");
+
+    try {
+      const session = await loginUser({
+        email: safeIdentifier,
+        password,
+      });
+
+      login({
+        ...session.user,
+        tokens: session.tokens,
+        remember: rememberLogin,
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      setStatus("error");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.",
+      );
+    }
   }
 
   return (
@@ -76,9 +107,11 @@ export default function OnboardingForm() {
           <span className="sr-only">아이디 또는 전화번호</span>
           <input
             className="h-16 w-full bg-white px-5 text-base font-semibold text-ink outline-none placeholder:text-ink/45"
+            type="email"
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
-            placeholder="아이디 또는 전화번호"
+            placeholder="이메일"
+            required={!demoMode}
           />
         </label>
         <label className="block">
@@ -89,6 +122,7 @@ export default function OnboardingForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="비밀번호"
+            required={!demoMode}
           />
         </label>
       </div>
@@ -189,12 +223,23 @@ export default function OnboardingForm() {
         </fieldset>
       ) : null}
 
+      {message ? (
+        <p className="mt-5 rounded-lg border border-line bg-background p-3 text-sm font-semibold text-accent">
+          {message}
+        </p>
+      ) : null}
+
       <button
         type="submit"
-        className="focus-ring mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-white shadow-soft transition hover:bg-primary/90"
+        disabled={status === "logging-in"}
+        className="focus-ring mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-white shadow-soft transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {demoMode ? `${roleLabel(role)}로 로그인` : "로그인"}
-        <ArrowRight size={20} aria-hidden="true" />
+        {status === "logging-in"
+          ? "로그인 중..."
+          : demoMode
+            ? `${roleLabel(role)}로 로그인`
+            : "로그인"}
+        {status === "logging-in" ? null : <ArrowRight size={20} aria-hidden="true" />}
       </button>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold text-ink/54">
@@ -206,9 +251,9 @@ export default function OnboardingForm() {
           비밀번호 찾기
         </button>
         <span className="h-3 w-px bg-line" />
-        <button type="button" className="transition hover:text-primary">
+        <Link href="/signup" className="transition hover:text-primary">
           회원가입
-        </button>
+        </Link>
       </div>
     </form>
   );

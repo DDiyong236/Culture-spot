@@ -23,9 +23,13 @@ class ProjectController (
     @PostMapping
     fun registerProject(
         @RequestBody request: ProjectRequest,
-        @AuthenticationPrincipal userId: Long
+        @AuthenticationPrincipal userId: Long?,
+        @RequestParam(required = false) creatorId: Long?
     ): ResponseEntity<Long> {
-        val projectId = projectService.registerProject(request, userId)
+        val resolvedUserId = userId
+            ?: creatorId
+            ?: throw IllegalArgumentException("프로젝트 등록에는 사용자 정보가 필요합니다.")
+        val projectId = projectService.registerProject(request, resolvedUserId)
         return ResponseEntity.ok(projectId)
     }
 

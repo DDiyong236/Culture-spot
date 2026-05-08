@@ -1,4 +1,5 @@
 import type { CreatorProject } from "@/types";
+import { authFetch } from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 const DEFAULT_BACKEND_BASE_URL = "http://localhost:8080";
@@ -89,7 +90,7 @@ export async function registerProject(
 
   console.info("[컬처 SPOT!] 프로젝트 등록 백엔드 연결 시도", backendLog);
 
-  const response = await fetch(backendLog.browserRequestUrl, {
+  const response = await authFetch(backendLog.browserRequestUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

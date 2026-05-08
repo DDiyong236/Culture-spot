@@ -3,6 +3,7 @@ package com.culture.backend.domain.user.service
 import com.culture.backend.domain.user.dto.AuthResponse
 import com.culture.backend.domain.user.dto.SignupRequest
 import com.culture.backend.domain.user.dto.request.LoginRequest
+import com.culture.backend.domain.user.dto.request.RefreshRequest
 import com.culture.backend.domain.user.entity.User
 import com.culture.backend.domain.user.repository.UserRepository
 import com.culture.backend.global.util.JwtUtil
@@ -49,10 +50,36 @@ class AuthService(
         val accessToken = jwtUtil.generateAccessToken(user.id!!, user.email, user.role.name)
         val refreshToken = jwtUtil.generateRefreshToken(user.id!!)
 
+        return authResponse(user, accessToken, refreshToken)
+    }
+
+    @Transactional(readOnly = true)
+    fun refresh(request: RefreshRequest): AuthResponse {
+        if (!jwtUtil.validateToken(request.refreshToken)) {
+            throw IllegalArgumentException("유효하지 않은 refresh token입니다.")
+        }
+
+        val userId = jwtUtil.getIdFromToken(request.refreshToken)
+        val user = userRepository.findById(userId)
+            .orElseThrow { IllegalArgumentException("존재하지 않는 사용자입니다.") }
+        val accessToken = jwtUtil.generateAccessToken(user.id!!, user.email, user.role.name)
+        val refreshToken = jwtUtil.generateRefreshToken(user.id!!)
+
+        return authResponse(user, accessToken, refreshToken)
+    }
+
+    private fun authResponse(
+        user: User,
+        accessToken: String,
+        refreshToken: String
+    ): AuthResponse {
         return AuthResponse(
             accessToken = accessToken,
             refreshToken = refreshToken,
-            role = user.role.name
+            role = user.role.name,
+            userId = user.id!!,
+            email = user.email,
+            name = user.name
         )
     }
 }
