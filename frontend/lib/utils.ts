@@ -31,7 +31,6 @@ export function eventTypeLabel(type: EventType) {
     exhibition: "전시",
     performance: "공연",
     "pop-up": "팝업",
-    "book talk": "북토크",
   };
 
   return labels[type];

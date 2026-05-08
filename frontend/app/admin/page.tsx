@@ -80,7 +80,7 @@ export default function AdminPage() {
           <StatCard
             label="예정 이벤트"
             value={events.length}
-            helper="작은 전시, 공연, 팝업, 북토크가 예정되어 있습니다."
+            helper="작은 전시, 공연, 팝업이 예정되어 있습니다."
             icon={<CalendarCheck size={20} aria-hidden="true" />}
           />
           <StatCard

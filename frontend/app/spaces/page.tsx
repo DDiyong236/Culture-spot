@@ -16,8 +16,6 @@ const defaultFilters: FilterState = {
   noise: false,
   projector: false,
   quiet: false,
-  priceType: "all",
-  capacity: 0,
 };
 
 export default function SpacesPage() {
@@ -49,10 +47,6 @@ export default function SpacesPage() {
     ) {
       return false;
     }
-    if (filters.priceType !== "all" && cafe.priceType !== filters.priceType) {
-      return false;
-    }
-    if (cafe.capacity < filters.capacity) return false;
     return true;
   });
 

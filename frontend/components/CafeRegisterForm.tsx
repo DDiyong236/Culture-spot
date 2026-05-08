@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Store } from "lucide-react";
+import { ImagePlus, Store } from "lucide-react";
 import type {
   CafeSpace,
   Equipment,
@@ -24,41 +24,38 @@ const eventOptions: EventType[] = [
   "exhibition",
   "performance",
   "pop-up",
-  "book talk",
 ];
 
 type CafeFormState = {
   name: string;
   address: string;
-  region: string;
   operatingHours: string;
-  idleTimeSlots: string;
-  hasWallSpace: boolean;
-  hasCornerSpace: boolean;
-  allowsPerformance: boolean;
   noiseTolerance: NoiseTolerance;
   seats: number;
-  capacity: number;
   equipment: Equipment[];
   preferredEventTypes: EventType[];
   priceType: PriceType;
   pricePerHour: number;
+  spaceImage: string;
   description: string;
 };
 
 function recommendEventTypes(form: CafeFormState) {
   const recommendations = new Set<EventType>();
-  if (form.hasWallSpace || form.equipment.includes("Display wall")) {
+  if (
+    form.equipment.includes("Display wall") ||
+    form.equipment.includes("Projector") ||
+    form.equipment.includes("Lighting")
+  ) {
     recommendations.add("exhibition");
   }
-  if (form.hasCornerSpace) {
+  if (form.seats >= 8) {
     recommendations.add("pop-up");
-    recommendations.add("book talk");
   }
-  if (form.allowsPerformance && form.noiseTolerance !== "low") {
+  if (form.noiseTolerance !== "low") {
     recommendations.add("performance");
   }
-  if (!recommendations.size) recommendations.add("book talk");
+  if (!recommendations.size) recommendations.add("exhibition");
   return Array.from(recommendations);
 }
 
@@ -66,19 +63,14 @@ export default function CafeRegisterForm() {
   const [form, setForm] = useState<CafeFormState>({
     name: "",
     address: "",
-    region: "연남",
     operatingHours: "10:00 - 22:00",
-    idleTimeSlots: "평일 오후",
-    hasWallSpace: true,
-    hasCornerSpace: true,
-    allowsPerformance: false,
     noiseTolerance: "low",
     seats: 34,
-    capacity: 22,
     equipment: ["Display wall", "Lighting"],
-    preferredEventTypes: ["exhibition", "book talk"],
-    priceType: "collaboration",
+    preferredEventTypes: ["exhibition"],
+    priceType: "free",
     pricePerHour: 0,
+    spaceImage: "",
     description: "",
   });
   const [preview, setPreview] = useState<CafeSpace | null>(null);
@@ -112,37 +104,35 @@ export default function CafeRegisterForm() {
     );
   }
 
-  function updateAvailability(
-    key: "hasWallSpace" | "hasCornerSpace" | "allowsPerformance",
-    value: boolean,
-  ) {
-    setForm((current) => ({ ...current, [key]: value }));
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const availableTypes = form.preferredEventTypes.length
       ? form.preferredEventTypes
       : recommendedTypes;
+    const hasWallSpace =
+      availableTypes.includes("exhibition") ||
+      form.equipment.includes("Display wall");
+    const hasCornerSpace = availableTypes.includes("pop-up");
+    const allowsPerformance =
+      availableTypes.includes("performance") && form.noiseTolerance !== "low";
 
     setPreview({
       id: "preview-cafe",
       name: form.name || "새로운 동네 카페",
-      region: form.region,
+      region: "등록 예정",
       address: form.address || "주소 입력 예정",
       description:
         form.description ||
         "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 카페입니다.",
       availableTypes,
-      capacity: form.capacity,
+      capacity: Math.max(6, Math.min(form.seats, 24)),
       seats: form.seats,
-      availableTimeSlots: form.idleTimeSlots
-        .split(",")
-        .map((slot) => slot.trim())
-        .filter(Boolean),
-      hasWallSpace: form.hasWallSpace,
-      hasCornerSpace: form.hasCornerSpace,
-      allowsPerformance: form.allowsPerformance,
+      availableTimeSlots: [
+        form.operatingHours ? `${form.operatingHours} 중 협의` : "운영 중 협의",
+      ],
+      hasWallSpace,
+      hasCornerSpace,
+      allowsPerformance,
       noiseTolerance: form.noiseTolerance,
       equipment: form.equipment,
       priceType: form.priceType,
@@ -152,6 +142,7 @@ export default function CafeRegisterForm() {
           ? "조용하고 카페 본연의 분위기를 살린 갤러리형 공간"
           : "따뜻하고 유연한 커뮤니티형 공간",
       image:
+        form.spaceImage ||
         "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80",
       utilizationRate: 0,
     });
@@ -166,7 +157,7 @@ export default function CafeRegisterForm() {
         <div>
           <p className="text-sm font-semibold text-accent">카페 공간 레이어</p>
           <h2 className="mt-1 text-2xl font-bold text-ink">
-            쓰이지 않던 벽, 코너, 한적한 시간을 등록하세요
+            운영 중인 카페의 작은 문화 공간을 등록하세요
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
             Local Stage는 카페 영업을 유지한 채, 잘 맞는 창작자와 작은
@@ -182,15 +173,6 @@ export default function CafeRegisterForm() {
               value={form.name}
               onChange={(event) => update("name", event.target.value)}
               placeholder="연남 윈도우 카페"
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="label">지역</span>
-            <input
-              className="form-field"
-              value={form.region}
-              onChange={(event) => update("region", event.target.value)}
-              placeholder="연남"
             />
           </label>
           <label className="space-y-1.5 sm:col-span-2">
@@ -211,15 +193,6 @@ export default function CafeRegisterForm() {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="label">한적한 시간대</span>
-            <input
-              className="form-field"
-              value={form.idleTimeSlots}
-              onChange={(event) => update("idleTimeSlots", event.target.value)}
-              placeholder="평일 오후, 일요일 오전"
-            />
-          </label>
-          <label className="space-y-1.5">
             <span className="label">좌석 수</span>
             <input
               className="form-field"
@@ -227,16 +200,6 @@ export default function CafeRegisterForm() {
               min="1"
               value={form.seats}
               onChange={(event) => update("seats", Number(event.target.value))}
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="label">소규모 이벤트 수용 인원</span>
-            <input
-              className="form-field"
-              type="number"
-              min="1"
-              value={form.capacity}
-              onChange={(event) => update("capacity", Number(event.target.value))}
             />
           </label>
           <label className="space-y-1.5">
@@ -263,7 +226,6 @@ export default function CafeRegisterForm() {
               }
             >
               <option value="free">무료</option>
-              <option value="collaboration">무료 협업</option>
               <option value="paid">유료</option>
             </select>
           </label>
@@ -284,34 +246,48 @@ export default function CafeRegisterForm() {
           ) : null}
         </div>
 
-        <fieldset className="mt-4">
-          <legend className="label">공간 활용 가능 여부</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {[
-              ["hasWallSpace", "벽면 사용 가능"],
-              ["hasCornerSpace", "코너 공간 사용 가능"],
-              ["allowsPerformance", "공연 가능"],
-            ].map(([key, label]) => (
-              <label
-                key={key}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-background px-3 py-2 text-sm font-medium text-primary"
-              >
-                <input
-                  type="checkbox"
-                  checked={Boolean(form[key as keyof CafeFormState])}
-                  onChange={(event) =>
-                    updateAvailability(
-                      key as "hasWallSpace" | "hasCornerSpace" | "allowsPerformance",
-                      event.target.checked,
-                    )
-                  }
-                  className="size-4 rounded border-line accent-accent"
-                />
-                {label}
-              </label>
-            ))}
+        <label className="mt-4 block space-y-1.5">
+          <span className="label">공간 이미지</span>
+          <div className="grid gap-4 rounded-lg border border-dashed border-line bg-background p-4 lg:grid-cols-[0.42fr_0.58fr]">
+            <div className="overflow-hidden rounded-lg border border-line bg-white">
+              <img
+                src={
+                  form.spaceImage ||
+                  "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80"
+                }
+                alt="등록할 카페 공간 미리보기"
+                className="h-44 w-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col justify-center gap-3">
+              <div className="flex items-center gap-2 text-primary">
+                <ImagePlus size={18} aria-hidden="true" />
+                <span className="text-sm font-bold">
+                  창작자가 확인할 공간 사진을 넣어주세요
+                </span>
+              </div>
+              <input
+                className="form-field file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) update("spaceImage", URL.createObjectURL(file));
+                }}
+              />
+              <input
+                className="form-field"
+                value={form.spaceImage}
+                onChange={(event) => update("spaceImage", event.target.value)}
+                placeholder="또는 https:// 이미지 주소"
+              />
+              <p className="text-xs leading-5 text-ink/58">
+                벽면, 코너, 작은 무대처럼 활용될 실제 카페 공간이 보이는
+                이미지를 권장합니다.
+              </p>
+            </div>
           </div>
-        </fieldset>
+        </label>
 
         <fieldset className="mt-4">
           <legend className="label">사용 가능한 장비</legend>
@@ -380,8 +356,8 @@ export default function CafeRegisterForm() {
           </h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {recommendedTypes.map((type) => (
-              <span key={type} className="badge capitalize">
-                {type}
+              <span key={type} className="badge">
+                {eventTypeLabel(type)}
               </span>
             ))}
           </div>
@@ -401,8 +377,8 @@ export default function CafeRegisterForm() {
               폼을 제출하면 카페 등록 카드가 표시됩니다.
             </h2>
             <p className="mt-3 text-sm leading-6 text-ink/70">
-              활용 가능한 문화 공간, 한적한 시간대, 장비, 어울리는 이벤트
-              유형을 미리 확인할 수 있습니다.
+              공간 이미지, 장비, 어울리는 이벤트 유형을 미리 확인할 수
+              있습니다.
             </p>
           </div>
         )}

@@ -1,4 +1,4 @@
-export type EventType = "exhibition" | "performance" | "pop-up" | "book talk";
+export type EventType = "exhibition" | "performance" | "pop-up";
 
 export type NoiseTolerance = "low" | "medium" | "high";
 
@@ -98,6 +98,4 @@ export type FilterState = {
   noise: boolean;
   projector: boolean;
   quiet: boolean;
-  priceType: "all" | PriceType;
-  capacity: number;
 };

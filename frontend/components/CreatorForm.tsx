@@ -136,7 +136,6 @@ export default function CreatorForm() {
               <option value="exhibition">전시</option>
               <option value="performance">공연</option>
               <option value="pop-up">팝업</option>
-              <option value="book talk">북토크</option>
             </select>
           </label>
           <label className="space-y-1.5">

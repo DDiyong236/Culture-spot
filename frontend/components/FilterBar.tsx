@@ -1,7 +1,7 @@
 "use client";
 
 import { SlidersHorizontal } from "lucide-react";
-import type { FilterState, PriceType } from "@/types";
+import type { FilterState } from "@/types";
 
 type FilterBarProps = {
   filters: FilterState;
@@ -47,40 +47,6 @@ export default function FilterBar({
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="space-y-1.5">
-          <span className="label">무료/유료</span>
-          <select
-            className="form-field"
-            value={filters.priceType}
-            onChange={(event) =>
-              onChange({
-                ...filters,
-                priceType: event.target.value as "all" | PriceType,
-              })
-            }
-          >
-            <option value="all">전체</option>
-            <option value="free">무료</option>
-            <option value="collaboration">협업</option>
-            <option value="paid">유료</option>
-          </select>
-        </label>
-
-        <label className="space-y-1.5 md:col-span-2">
-          <span className="label">수용 인원: 최소 {filters.capacity}명</span>
-          <input
-            type="range"
-            min="0"
-            max="40"
-            step="2"
-            value={filters.capacity}
-            className="w-full accent-accent"
-            onChange={(event) =>
-              onChange({ ...filters, capacity: Number(event.target.value) })
-            }
-          />
         </label>
       </div>
 

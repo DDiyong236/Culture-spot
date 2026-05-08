@@ -8,7 +8,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "마포구 동교로38길 24",
     description:
       "창가 옆 긴 벽면과 작은 코너가 있는 차분한 동네 카페입니다. 카페는 평소처럼 영업하면서 작품이 일상 동선 안에 자연스럽게 놓입니다.",
-    availableTypes: ["exhibition", "book talk", "pop-up"],
+    availableTypes: ["exhibition", "pop-up"],
     capacity: 24,
     seats: 36,
     availableTimeSlots: ["평일 오후", "일요일 오전"],
@@ -31,7 +31,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "마포구 월드컵로13길 18",
     description:
       "레코드가 놓인 따뜻한 카페로, 느린 저녁 시간대에 작은 사이드 코너에서 어쿠스틱 공연과 진 팝업을 열 수 있습니다.",
-    availableTypes: ["performance", "pop-up", "book talk"],
+    availableTypes: ["performance", "pop-up"],
     capacity: 30,
     seats: 42,
     availableTimeSlots: ["평일 저녁", "토요일 오후"],
@@ -77,7 +77,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "용산구 신흥로 31",
     description:
       "언덕길에 자리한 작은 카페로, 독서 테이블과 부드러운 조명, 일러스트와 시를 걸 수 있는 조용한 벽면이 있습니다.",
-    availableTypes: ["exhibition", "book talk"],
+    availableTypes: ["exhibition"],
     capacity: 18,
     seats: 26,
     availableTimeSlots: ["일요일 오전", "평일 저녁"],
@@ -100,7 +100,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "종로구 수표로28길 12",
     description:
       "한옥 느낌의 카페로, 좁은 통로 벽과 마당 코너를 활용해 일반 좌석을 막지 않고 공예 팝업을 열 수 있습니다.",
-    availableTypes: ["exhibition", "pop-up", "book talk"],
+    availableTypes: ["exhibition", "pop-up"],
     capacity: 26,
     seats: 34,
     availableTimeSlots: ["평일 오전", "일요일 오후"],
@@ -146,7 +146,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "서대문구 연세로11길 7",
     description:
       "학생 이용자가 많은 밝은 카페로, 평일 한적한 시간대와 프로젝터가 가능한 뒷공간을 활용해 토크와 작은 전시를 열 수 있습니다.",
-    availableTypes: ["exhibition", "book talk"],
+    availableTypes: ["exhibition"],
     capacity: 32,
     seats: 54,
     availableTimeSlots: ["평일 오전", "평일 오후"],
@@ -169,7 +169,7 @@ export const cafeSpaces: CafeSpace[] = [
     address: "용산구 회나무로 56",
     description:
       "반개방 코너와 해질녘 시간대가 매력적인 카페로, 낭독회, 인디 어쿠스틱, 창작자 모임에 잘 맞습니다.",
-    availableTypes: ["performance", "book talk", "pop-up"],
+    availableTypes: ["performance", "pop-up"],
     capacity: 34,
     seats: 46,
     availableTimeSlots: ["토요일 저녁", "일요일 오후"],
@@ -238,14 +238,14 @@ export const creators: CreatorProject[] = [
     name: "김소연",
     genre: "시",
     projectTitle: "오전 11시의 페이지",
-    eventType: "book talk",
+    eventType: "pop-up",
     requiredConditions: ["조용한 분위기", "프로젝터"],
     expectedAudience: 16,
     preferredRegion: "신촌",
     budget: 30000,
     preferredTime: "평일 오전",
     introduction:
-      "점심 전 가볍게 문화를 만나고 싶은 주민을 위한 짧은 낭독과 대화 형식의 북토크입니다.",
+      "점심 전 가볍게 문화를 만나고 싶은 주민을 위한 짧은 낭독과 대화 형식의 문학 팝업입니다.",
     portfolioUrl: "https://example.com/soyeon",
   },
   {
@@ -268,14 +268,14 @@ export const creators: CreatorProject[] = [
     name: "조나리",
     genre: "에세이",
     projectTitle: "골목에서 온 편지",
-    eventType: "book talk",
+    eventType: "pop-up",
     requiredConditions: ["조용한 분위기", "코너 공간"],
     expectedAudience: 22,
     preferredRegion: "해방촌",
     budget: 15000,
     preferredTime: "일요일 오전",
     introduction:
-      "산책, 스쳐 들은 대화, 작은 동네 의식에서 출발한 글쓰기를 나누는 이웃형 북토크입니다.",
+      "산책, 스쳐 들은 대화, 작은 동네 의식에서 출발한 글쓰기를 나누는 이웃형 낭독 팝업입니다.",
     portfolioUrl: "https://example.com/nari",
   },
 ];
@@ -328,14 +328,14 @@ export const events: LocalEvent[] = [
     title: "오전 11시의 페이지",
     creatorId: "creator-soyeon",
     cafeId: "cafe-sinchon-study",
-    eventType: "book talk",
+    eventType: "pop-up",
     date: "2026-06-04",
     time: "11:00 - 12:00",
     description:
       "조용한 평일 오전 시간대에 프로젝터를 활용해 진행되는 짧은 낭독과 대화입니다.",
     recommendationReason:
       "조용한 평일 오전 시간, 프로젝터 장비, 작은 문학 관객을 수용할 좌석이 갖춰져 있습니다.",
-    tags: ["시", "북토크", "오전 문화"],
+    tags: ["시", "낭독", "오전 문화"],
   },
   {
     id: "event-city-fragments",
@@ -356,7 +356,7 @@ export const events: LocalEvent[] = [
     title: "골목에서 온 편지",
     creatorId: "creator-nari",
     cafeId: "cafe-haebang-poetry",
-    eventType: "book talk",
+    eventType: "pop-up",
     date: "2026-06-14",
     time: "10:30 - 11:40",
     description:

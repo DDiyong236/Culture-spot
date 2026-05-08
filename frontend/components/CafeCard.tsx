@@ -3,7 +3,6 @@ import {
   Clock,
   MapPin,
   Projector,
-  Users,
   Volume2,
 } from "lucide-react";
 import type { CafeSpace } from "@/types";
@@ -12,7 +11,6 @@ import ConsumerEngagement from "@/components/ConsumerEngagement";
 import {
   equipmentLabel,
   eventTypeLabel,
-  formatPrice,
   noiseLabel,
   scoreTone,
 } from "@/lib/utils";
@@ -38,6 +36,7 @@ export default function CafeCard({
     `소음 허용 ${noiseLabel(cafe.noiseTolerance)}`,
   ].filter((feature): feature is string => Boolean(feature));
   const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-[9rem]";
+  const detailHeight = compact ? "min-h-[4.5rem]" : "min-h-[4.25rem]";
   const featureHeight = compact ? "min-h-[4.25rem]" : "min-h-[4.75rem]";
 
   return (
@@ -48,9 +47,6 @@ export default function CafeCard({
           alt={`${cafe.name} 내부 공간`}
           className="h-full w-full object-cover"
         />
-        <div className="absolute left-3 top-3 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-primary shadow-soft">
-          {formatPrice(cafe.priceType, cafe.pricePerHour)}
-        </div>
         {typeof score === "number" ? (
           <div
             className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold ${scoreTone(score)}`}
@@ -63,7 +59,14 @@ export default function CafeCard({
         <div className={summaryHeight}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-lg font-bold text-ink">{cafe.name}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-bold text-ink">{cafe.name}</h3>
+                {cafe.availableTypes.map((type) => (
+                  <span key={type} className="badge">
+                    {eventTypeLabel(type)}
+                  </span>
+                ))}
+              </div>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-primary/75">
                 <MapPin size={15} aria-hidden="true" />
                 {cafe.region} · {cafe.address}
@@ -77,19 +80,7 @@ export default function CafeCard({
           ) : null}
         </div>
 
-        <div className="flex min-h-[2.25rem] flex-wrap content-start gap-2">
-          {cafe.availableTypes.map((type) => (
-            <span key={type} className="badge">
-              {eventTypeLabel(type)}
-            </span>
-          ))}
-        </div>
-
-        <div className="grid min-h-[5.75rem] content-start gap-2 text-sm text-ink/74 sm:grid-cols-2">
-          <p className="flex items-center gap-2">
-            <Users size={16} className="text-sage" aria-hidden="true" />
-            수용 {cafe.capacity}명
-          </p>
+        <div className={`grid content-start gap-2 text-sm text-ink/74 sm:grid-cols-2 ${detailHeight}`}>
           <p className="flex items-center gap-2">
             <Clock size={16} className="text-sage" aria-hidden="true" />
             {cafe.availableTimeSlots.join(", ")}

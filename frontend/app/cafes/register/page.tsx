@@ -12,8 +12,8 @@ export default function CafeRegisterPage() {
             쓰이지 않던 카페 공간을 문화 기회로 바꿔보세요.
           </h1>
           <p className="mt-4 text-base leading-7 text-ink/72">
-            벽면, 코너, 장비, 한적한 시간대를 등록하세요. 카페는 계속
-            손님을 맞이하고, 창작자는 공간에 작은 동네 무대를 더합니다.
+            공간 이미지와 장비, 가능한 이벤트 유형을 등록하세요. 카페는
+            계속 손님을 맞이하고, 창작자는 공간에 작은 동네 무대를 더합니다.
           </p>
         </div>
         <CafeRegisterForm />

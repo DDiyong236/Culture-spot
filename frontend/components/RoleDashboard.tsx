@@ -174,8 +174,8 @@ function CafeOwnerDashboard() {
         </div>
         <h2 className="mt-5 text-2xl font-bold text-ink">카페 운영 화면</h2>
         <p className="mt-3 text-sm leading-6 text-ink/70">
-          영업을 유지하면서 활용 가능한 벽면, 코너, 한적한 시간대와 장비를
-          등록하고 창작자 신청을 받을 수 있습니다.
+          영업을 유지하면서 활용 가능한 공간 이미지와 장비를 등록하고
+          창작자 신청을 받을 수 있습니다.
         </p>
         <Link
           href="/cafes/register"
