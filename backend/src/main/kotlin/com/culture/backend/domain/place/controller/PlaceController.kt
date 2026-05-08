@@ -1,5 +1,6 @@
 package com.culture.backend.domain.place.controller
 
+import com.culture.backend.domain.place.dto.PlaceRequest
 import com.culture.backend.domain.place.dto.PlaceResponse
 import com.culture.backend.domain.place.service.PlaceService
 import org.springframework.http.ResponseEntity
@@ -42,5 +43,12 @@ class PlaceController(
         @RequestParam district: String
     ): ResponseEntity<List<String>> {
         return ResponseEntity.ok(placeService.getAvailableNeighborhoods(city, district))
+    }
+    @PostMapping
+    fun registerPlace(@RequestBody request: PlaceRequest,
+    @RequestParam userId: Long
+    ): ResponseEntity<Long> {
+        val placeId = placeService.registerPlace(request, userId)
+        return ResponseEntity.ok(placeId)
     }
 }
