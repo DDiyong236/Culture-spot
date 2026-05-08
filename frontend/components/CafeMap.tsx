@@ -335,7 +335,7 @@ export default function CafeMap() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-accent">공간 지도</p>
-              <h1 className="mt-1 text-xl font-bold text-ink">Local Stage</h1>
+              <h1 className="mt-1 text-xl font-bold text-ink">컬처 SPOT!</h1>
             </div>
             <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
               {cafes.length}곳

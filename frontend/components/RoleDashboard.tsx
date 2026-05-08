@@ -50,6 +50,9 @@ type CollaborationPlace = {
   lastAppliedAt: string;
 };
 
+const WEEK_DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const DEMO_SCHEDULE_TIMES = ["11:00", "14:00", "16:00", "18:00", "20:00"];
+
 function readStorage<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
@@ -67,6 +70,86 @@ function formatShortDate(value: string) {
     month: "long",
     day: "numeric",
   }).format(date);
+}
+
+function scheduleDate(value: string | undefined, fallbackIndex: number) {
+  const date = value ? new Date(value) : null;
+  if (date && !Number.isNaN(date.getTime())) return date;
+
+  const fallbackDate = new Date();
+  fallbackDate.setDate(fallbackDate.getDate() + fallbackIndex);
+  return fallbackDate;
+}
+
+function scheduleDayIndex(date: Date) {
+  const day = date.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+function scheduleTimeLabel(index: number) {
+  return DEMO_SCHEDULE_TIMES[index % DEMO_SCHEDULE_TIMES.length];
+}
+
+function dateKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function formatMonthLabel(date: Date) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+function collaborationScheduleItem(
+  request: ProjectApplication,
+  index: number,
+) {
+  const baseDate = request.acceptedAt ?? request.createdAt;
+  const date = scheduleDate(baseDate, index);
+  const dayIndex = scheduleDayIndex(date);
+
+  return {
+    id: request.id,
+    title: request.projectTitle,
+    cafeName: request.cafeName,
+    creatorName: request.creatorName,
+    dateLabel: request.acceptedAt
+      ? `${formatShortDate(request.acceptedAt)} 이후`
+      : "일정 협의 중",
+    date,
+    dateKey: dateKey(date),
+    dayIndex,
+    dayLabel: WEEK_DAYS[dayIndex],
+    timeLabel: scheduleTimeLabel(index),
+    status: "확정",
+    href: `/requests/${request.id}`,
+  };
+}
+
+function buildMonthlyCalendar<T extends { dateKey: string }>(
+  monthDate: Date,
+  items: T[],
+) {
+  const firstDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+  const startDate = new Date(firstDate);
+  startDate.setDate(firstDate.getDate() - scheduleDayIndex(firstDate));
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+
+    return {
+      date,
+      dateKey: dateKey(date),
+      isCurrentMonth: date.getMonth() === monthDate.getMonth(),
+      items: items.filter((item) => item.dateKey === dateKey(date)),
+    };
+  });
 }
 
 function ConsumerDashboard() {
@@ -380,17 +463,7 @@ function CreatorDashboard() {
   );
 
   const artistScheduleItems = useMemo(() => {
-    return acceptedRequests.map((request) => ({
-      id: request.id,
-      title: request.projectTitle,
-      cafeName: request.cafeName,
-      dateLabel: request.acceptedAt
-        ? `${formatShortDate(request.acceptedAt)} 수락`
-        : "수락 완료",
-      timeLabel: "세부 일정 협의 중",
-      status: "수락됨",
-      href: `/requests/${request.id}`,
-    }));
+    return acceptedRequests.map(collaborationScheduleItem);
   }, [acceptedRequests]);
 
   const primaryProject = projectCards[0] ?? null;
@@ -710,9 +783,9 @@ function CreatorDashboard() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">확정 일정</p>
+            <p className="text-sm font-semibold text-accent">다가오는 일정</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              수락된 카페 협업 일정
+              확정된 카페 협업 일정
             </h2>
           </div>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
@@ -728,34 +801,28 @@ function CreatorDashboard() {
                 href={schedule.href}
                 className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-4">
+                  <div className="flex min-w-20 shrink-0 flex-col items-center justify-center rounded-lg bg-primary px-3 py-3 text-white">
+                    <p className="text-sm font-bold">{schedule.dayLabel}</p>
+                    <p className="mt-1 text-lg font-bold">{schedule.timeLabel}</p>
+                  </div>
                   <div>
                     <p className="font-bold text-primary">{schedule.title}</p>
                     <p className="mt-1 text-sm text-ink/64">
                       {schedule.cafeName}
                     </p>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-ink/70">
+                      <CalendarClock
+                        size={15}
+                        className="text-sage"
+                        aria-hidden="true"
+                      />
+                      {schedule.dateLabel}
+                    </p>
                   </div>
                   <span className="rounded-full bg-sage px-3 py-1 text-xs font-bold text-white">
                     {schedule.status}
                   </span>
-                </div>
-                <div className="mt-3 grid gap-2 text-sm text-ink/70 sm:grid-cols-2">
-                  <p className="flex items-center gap-2">
-                    <CalendarClock
-                      size={15}
-                      className="text-sage"
-                      aria-hidden="true"
-                    />
-                    {schedule.dateLabel}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <CheckCircle2
-                      size={15}
-                      className="text-sage"
-                      aria-hidden="true"
-                    />
-                    {schedule.timeLabel}
-                  </p>
                 </div>
               </Link>
             ))
@@ -858,16 +925,22 @@ function CafeOwnerDashboard() {
   const acceptedRequests = sentRequests.filter(
     (request) => projectApplicationStatus(request) === "accepted",
   );
+  const ownerScheduleItems = acceptedRequests.map(collaborationScheduleItem);
+  const ownerCalendarMonth = ownerScheduleItems[0]?.date ?? new Date();
+  const monthlySchedule = buildMonthlyCalendar(
+    ownerCalendarMonth,
+    ownerScheduleItems,
+  );
   const pendingSentRequests = sentRequests.filter(
     (request) => projectApplicationStatus(request) !== "accepted",
   );
   const todoItems = [
     {
-      label: "카페 공간 등록하기",
+      label: "장소 등록하기",
       done: registeredCafes.length > 0,
       helper: registeredCafes.length
-        ? "등록된 카페 공간이 있습니다."
-        : "먼저 운영 중인 카페 공간을 등록하세요.",
+        ? "등록된 장소가 있습니다."
+        : "먼저 운영 중인 장소를 등록하세요.",
     },
     {
       label: "받은 협업 신청 확인하기",
@@ -939,16 +1012,16 @@ function CafeOwnerDashboard() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">내 카페 정보</p>
+            <p className="text-sm font-semibold text-accent">내 장소 정보</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              등록한 카페 공간 요약
+              등록한 장소 요약
             </h2>
           </div>
           <Link
             href="/cafes/register"
             className="focus-ring inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
           >
-            카페 공간 등록하기
+            장소 등록하기
           </Link>
         </div>
 
@@ -1000,7 +1073,7 @@ function CafeOwnerDashboard() {
           ) : (
             <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
               <p className="font-bold text-primary">
-                아직 등록된 카페 공간이 없습니다.
+                아직 등록된 장소가 없습니다.
               </p>
             </div>
           )}
@@ -1101,9 +1174,9 @@ function CafeOwnerDashboard() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">확정 일정</p>
+            <p className="text-sm font-semibold text-accent">월간 캘린더</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              수락된 협업 일정
+              {formatMonthLabel(ownerCalendarMonth)} 확정된 협업 일정
             </h2>
           </div>
           <Link
@@ -1113,33 +1186,102 @@ function CafeOwnerDashboard() {
             아티스트 프로젝트 찾기
           </Link>
         </div>
+
+        <div className="mt-5 overflow-x-auto">
+          <div className="min-w-[820px] overflow-hidden rounded-lg border border-line">
+            <div className="grid grid-cols-7 bg-primary text-white">
+              {WEEK_DAYS.map((day) => (
+                <p
+                  key={day}
+                  className="border-r border-white/15 px-3 py-2 text-center text-sm font-bold last:border-r-0"
+                >
+                  {day}
+                </p>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 bg-white">
+              {monthlySchedule.map((day) => (
+                <article
+                  key={day.dateKey}
+                  className={`min-h-32 border-r border-t border-line p-2 last:border-r-0 ${
+                    day.isCurrentMonth ? "bg-background" : "bg-background/45"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p
+                      className={`text-sm font-bold ${
+                        day.isCurrentMonth ? "text-primary" : "text-ink/30"
+                      }`}
+                    >
+                      {day.date.getDate()}
+                    </p>
+                    {day.items.length ? (
+                      <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-bold text-primary">
+                        {day.items.length}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 space-y-1.5">
+                    {day.items.slice(0, 2).map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className="focus-ring block rounded-md bg-white p-2 text-left shadow-sm transition hover:bg-mist"
+                      >
+                        <p className="text-xs font-bold text-accent">
+                          {item.timeLabel}
+                        </p>
+                        <p className="mt-1 line-clamp-1 text-sm font-bold text-ink">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-ink/60">
+                          {item.creatorName}
+                        </p>
+                      </Link>
+                    ))}
+                    {day.items.length > 2 ? (
+                      <p className="text-xs font-bold text-primary/70">
+                        +{day.items.length - 2}개 더
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          {acceptedRequests.length ? (
-            acceptedRequests.map((request) => (
+          {ownerScheduleItems.length ? (
+            ownerScheduleItems.map((schedule) => (
               <Link
-                key={request.id}
-                href={`/requests/${request.id}`}
+                key={schedule.id}
+                href={schedule.href}
                 className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-bold text-primary">
-                      {request.projectTitle}
-                    </p>
+                <div className="flex items-start gap-4">
+                  <div className="flex min-w-20 shrink-0 flex-col items-center justify-center rounded-lg bg-primary px-3 py-3 text-white">
+                    <p className="text-sm font-bold">{schedule.dayLabel}</p>
+                    <p className="mt-1 text-lg font-bold">{schedule.timeLabel}</p>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-primary">{schedule.title}</p>
                     <p className="mt-1 text-sm text-ink/64">
-                      {request.creatorName} · {request.cafeName}
+                      {schedule.creatorName} · {schedule.cafeName}
+                    </p>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-ink/70">
+                      <CalendarClock
+                        size={15}
+                        className="text-sage"
+                        aria-hidden="true"
+                      />
+                      {schedule.dateLabel}
                     </p>
                   </div>
                   <span className="rounded-full bg-sage px-3 py-1 text-xs font-bold text-white">
-                    일정 협의
+                    {schedule.status}
                   </span>
                 </div>
-                <p className="mt-3 flex items-center gap-2 text-sm text-ink/70">
-                  <CalendarClock size={15} className="text-sage" aria-hidden="true" />
-                  {request.acceptedAt
-                    ? `${formatShortDate(request.acceptedAt)} 수락`
-                    : "수락 완료"}
-                </p>
               </Link>
             ))
           ) : (
@@ -1157,7 +1299,7 @@ function CafeOwnerDashboard() {
           <div>
             <p className="text-sm font-semibold text-accent">사용자 반응</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              평점과 후기 확인
+              관심과 후기 요약
             </h2>
           </div>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
@@ -1165,25 +1307,37 @@ function CafeOwnerDashboard() {
           </span>
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-[0.32fr_0.68fr]">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <article className="rounded-lg border border-line bg-background p-4">
-              <p className="text-sm font-semibold text-primary/70">평균 평점</p>
-              <p className="mt-2 text-3xl font-bold text-ink">{averageRating}</p>
-            </article>
-            <article className="rounded-lg border border-line bg-background p-4">
-              <p className="text-sm font-semibold text-primary/70">관심 반응</p>
-              <p className="mt-2 text-3xl font-bold text-ink">{expectedLikes}</p>
-            </article>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">관심 받은 수</p>
+            <p className="mt-2 text-3xl font-bold text-ink">{expectedLikes}</p>
+          </article>
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">후기</p>
+            <p className="mt-2 text-3xl font-bold text-ink">
+              {cafeReviews.length}개
+            </p>
+          </article>
+          <article className="rounded-lg border border-line bg-background p-4">
+            <p className="text-sm font-semibold text-primary/70">평균 평점</p>
+            <p className="mt-2 text-3xl font-bold text-ink">
+              {averageRating === "-" ? "대기" : averageRating}
+            </p>
+          </article>
+        </div>
+
+        <div className="mt-4 rounded-lg border border-line bg-background p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-bold text-primary">최근 반응</p>
+            <span className="text-sm font-semibold text-ink/54">
+              {cafeReviews.length ? "최근 3개" : "후기 대기 중"}
+            </span>
           </div>
 
-          <div className="space-y-3">
+          <div className="mt-3 grid gap-3 lg:grid-cols-3">
             {cafeReviews.length ? (
               cafeReviews.slice(0, 3).map((review) => (
-                <article
-                  key={review.id}
-                  className="rounded-lg border border-line bg-background p-4"
-                >
+                <article key={review.id} className="rounded-lg bg-white p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-bold text-primary">{review.targetName}</p>
                     <p className="inline-flex items-center gap-1 text-sm font-bold text-accent">
@@ -1191,15 +1345,16 @@ function CafeOwnerDashboard() {
                       {review.rating}점
                     </p>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-ink/70">
+                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink/70">
                     {review.content}
                   </p>
                 </article>
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-line bg-background p-5">
-                <p className="font-bold text-primary">
-                  아직 등록된 리뷰가 없습니다.
+              <div className="rounded-lg border border-dashed border-line bg-white p-4 lg:col-span-3">
+                <p className="font-bold text-primary">아직 후기가 없습니다.</p>
+                <p className="mt-1 text-sm leading-6 text-ink/62">
+                  첫 협업이 끝나면 사용자 후기가 이곳에 쌓입니다.
                 </p>
               </div>
             )}

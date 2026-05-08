@@ -87,7 +87,7 @@ export async function registerProject(
 ) {
   const backendLog = getProjectBackendLog(creatorId);
 
-  console.info("[Local Stage] 프로젝트 등록 백엔드 연결 시도", backendLog);
+  console.info("[컬처 SPOT!] 프로젝트 등록 백엔드 연결 시도", backendLog);
 
   const response = await fetch(backendLog.browserRequestUrl, {
     method: "POST",
@@ -98,14 +98,14 @@ export async function registerProject(
   });
 
   if (!response.ok) {
-    console.error("[Local Stage] 프로젝트 등록 백엔드 응답 실패", {
+    console.error("[컬처 SPOT!] 프로젝트 등록 백엔드 응답 실패", {
       ...backendLog,
       status: response.status,
     });
     throw new Error(`Failed to register project: ${response.status}`);
   }
 
-  console.info("[Local Stage] 연결된 백엔드", backendLog.backendUrl);
+  console.info("[컬처 SPOT!] 연결된 백엔드", backendLog.backendUrl);
 
   return (await response.json()) as number;
 }

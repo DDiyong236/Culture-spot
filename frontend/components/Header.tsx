@@ -32,7 +32,7 @@ function getNavItems(role?: UserRole) {
   if (role === "cafeOwner") {
     return [
       ...baseItems,
-      { href: "/cafes/register", label: "카페 등록", icon: PlusCircle },
+      { href: "/cafes/register", label: "장소 등록", icon: PlusCircle },
       { href: "/dashboard", label: "운영 화면", icon: UserRound },
     ];
   }
@@ -75,10 +75,7 @@ export default function Header() {
             </span>
             <span>
               <span className="block text-base font-bold leading-tight">
-                Local Stage
-              </span>
-              <span className="block text-xs text-ink/62">
-                카페 속 작은 문화 무대
+                컬처 SPOT!
               </span>
             </span>
           </Link>

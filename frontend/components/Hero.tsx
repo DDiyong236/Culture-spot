@@ -21,7 +21,7 @@ export default function Hero() {
       <div className="mx-auto flex min-h-[76vh] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="mb-4 inline-flex rounded-full border border-white/35 bg-white/12 px-3 py-1 text-sm font-semibold text-white">
-            Local Stage
+            컬처 SPOT!
           </p>
           <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] sm:text-6xl">
             일상의 카페를 동네의 작은 무대로.
@@ -31,7 +31,7 @@ export default function Hero() {
             오가는 공간에서 지역 관객을 만납니다.
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
-            카페는 평소처럼 영업합니다. Local Stage는 쓰이지 않던 벽, 조용한
+            카페는 평소처럼 영업합니다. 컬처 SPOT!은 쓰이지 않던 벽, 조용한
             코너, 한적한 시간대 위에 문화의 층을 더합니다.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">

@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useMemo, useState } from "react";
 import {
   Image,
+  ImageBackground,
   Platform,
   Pressable,
   SafeAreaView,
@@ -21,6 +22,9 @@ import type { EventType, LocalEvent, Space } from "./src/types";
 type TabKey = "home" | "spaces" | "events" | "saved" | "me";
 type SavedTarget = { id: string; type: "space" | "event" };
 type IconName = keyof typeof Ionicons.glyphMap;
+
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=1200&q=80";
 
 const tabs: Array<{
   key: TabKey;
@@ -137,18 +141,20 @@ function SpaceCard({
         <View style={styles.cardTopRow}>
           <View style={styles.flexOne}>
             <Text style={styles.kicker}>{space.region}</Text>
-            <Text style={styles.cardTitle}>{space.name}</Text>
+            <View style={styles.titleTagRow}>
+              <Text style={styles.cardTitle}>{space.name}</Text>
+              {space.eventTypes.map((type) => (
+                <View key={type} style={styles.inlineTag}>
+                  <Text style={styles.inlineTagText}>
+                    {eventTypeLabels[type]}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
           <SaveButton active={saved} onPress={onToggleSave} />
         </View>
         <Text style={styles.description}>{space.description}</Text>
-        <View style={styles.tagRow}>
-          {space.eventTypes.map((type) => (
-            <View key={type} style={styles.tag}>
-              <Text style={styles.tagText}>{eventTypeLabels[type]}</Text>
-            </View>
-          ))}
-        </View>
         <View style={styles.metaGrid}>
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={15} color={colors.sage} />
@@ -184,7 +190,14 @@ function EventCard({
             <Text style={styles.kicker}>
               {event.region} · {eventTypeLabels[event.eventType]}
             </Text>
-            <Text style={styles.cardTitle}>{event.title}</Text>
+            <View style={styles.titleTagRow}>
+              <Text style={styles.cardTitle}>{event.title}</Text>
+              {event.tags.slice(0, compact ? 2 : 3).map((tag) => (
+                <View key={tag} style={styles.inlineTag}>
+                  <Text style={styles.inlineTagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
           </View>
           <SaveButton active={saved} onPress={onToggleSave} />
         </View>
@@ -198,13 +211,6 @@ function EventCard({
         <Text style={styles.smallMuted}>
           {event.creatorName} · {event.cafeName}
         </Text>
-        <View style={styles.tagRow}>
-          {event.tags.slice(0, compact ? 2 : 3).map((tag) => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
       </View>
     </View>
   );
@@ -225,28 +231,34 @@ function HomeScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.screenContent}>
-      <LinearGradient
-        colors={["#6F3E2E", "#A9495F", "#F37338"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <ImageBackground
+        source={{ uri: HERO_IMAGE }}
         style={styles.hero}
+        imageStyle={styles.heroImage}
       >
-        <View style={styles.heroTop}>
-          <Text style={styles.heroKicker}>사용자 추천</Text>
-          <View style={styles.locationBadge}>
-            <Ionicons name="location" size={14} color={colors.primary} />
-            <Text style={styles.locationText}>내 주변</Text>
+        <LinearGradient
+          colors={["rgba(243,115,56,0.82)", "rgba(243,115,56,0.68)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroOverlay}
+        >
+          <View style={styles.heroTop}>
+            <Text style={styles.heroKicker}>Local Stage</Text>
+            <View style={styles.locationBadge}>
+              <Ionicons name="location" size={14} color={colors.primary} />
+              <Text style={styles.locationText}>내 주변</Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.heroTitle}>오늘 들르기 좋은 작은 문화 공간</Text>
-        <Text style={styles.heroCopy}>
-          전시, 공연, 팝업을 동네 카페 안에서 가볍게 발견하세요.
-        </Text>
-        <Pressable style={styles.heroButton} onPress={() => setTab("spaces")}>
-          <Text style={styles.heroButtonText}>공간 둘러보기</Text>
-          <Ionicons name="arrow-forward" size={17} color={colors.primary} />
-        </Pressable>
-      </LinearGradient>
+          <Text style={styles.heroTitle}>일상의 카페를 동네의 작은 무대로.</Text>
+          <Text style={styles.heroCopy}>
+            전시, 공연, 팝업을 동네 카페 안에서 가볍게 발견하세요.
+          </Text>
+          <Pressable style={styles.heroButton} onPress={() => setTab("spaces")}>
+            <Text style={styles.heroButtonText}>공간 찾기</Text>
+            <Ionicons name="arrow-forward" size={17} color={colors.primary} />
+          </Pressable>
+        </LinearGradient>
+      </ImageBackground>
 
       <SectionHeader
         title="다가오는 문화 일정"
@@ -588,9 +600,14 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <View style={styles.appHeader}>
-        <View>
-          <Text style={styles.appName}>Local Stage</Text>
-          <Text style={styles.appSubtitle}>사용자 모바일 MVP</Text>
+        <View style={styles.brandRow}>
+          <View style={styles.brandMark}>
+            <Ionicons name="cafe-outline" size={20} color={colors.white} />
+          </View>
+          <View>
+            <Text style={styles.appName}>Local Stage</Text>
+            <Text style={styles.appSubtitle}>카페 속 작은 문화 무대</Text>
+          </View>
         </View>
         <Pressable style={styles.headerButton}>
           <Ionicons name="notifications-outline" size={21} color={colors.primary} />
@@ -659,8 +676,22 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
     backgroundColor: colors.background,
   },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  brandMark: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+    ...shadow,
+  },
   appName: {
-    color: colors.primary,
+    color: colors.ink,
     fontSize: 21,
     fontWeight: "800",
   },
@@ -670,9 +701,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface,
@@ -689,16 +720,23 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     color: colors.ink,
-    fontSize: 28,
+    fontSize: 27,
     fontWeight: "900",
     marginBottom: 2,
   },
   hero: {
-    borderRadius: 24,
-    padding: 22,
-    minHeight: 226,
-    justifyContent: "space-between",
+    minHeight: 268,
+    overflow: "hidden",
+    borderRadius: 10,
     ...shadow,
+  },
+  heroImage: {
+    borderRadius: 10,
+  },
+  heroOverlay: {
+    flex: 1,
+    justifyContent: "space-between",
+    padding: 22,
   },
   heroTop: {
     flexDirection: "row",
@@ -708,8 +746,14 @@ const styles = StyleSheet.create({
   heroKicker: {
     color: colors.white,
     fontSize: 13,
-    fontWeight: "700",
-    opacity: 0.9,
+    fontWeight: "800",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.36)",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
   },
   locationBadge: {
     flexDirection: "row",
@@ -727,8 +771,8 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: colors.white,
-    fontSize: 31,
-    lineHeight: 38,
+    fontSize: 34,
+    lineHeight: 40,
     fontWeight: "900",
     marginTop: 18,
   },
@@ -744,7 +788,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     backgroundColor: colors.white,
-    borderRadius: 999,
+    borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 11,
     marginTop: 18,
@@ -776,7 +820,7 @@ const styles = StyleSheet.create({
   },
   card: {
     overflow: "hidden",
-    borderRadius: 18,
+    borderRadius: 8,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
@@ -788,7 +832,7 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     padding: 15,
-    gap: 10,
+    gap: 12,
   },
   cardTopRow: {
     flexDirection: "row",
@@ -811,6 +855,12 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     fontWeight: "900",
   },
+  titleTagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 7,
+  },
   description: {
     color: colors.muted,
     fontSize: 14,
@@ -819,10 +869,10 @@ const styles = StyleSheet.create({
   saveButton: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
   },
@@ -836,12 +886,27 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   tag: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.background,
     paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   tagText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  inlineTag: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  inlineTagText: {
     color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
@@ -864,7 +929,7 @@ const styles = StyleSheet.create({
   },
   eventCard: {
     overflow: "hidden",
-    borderRadius: 18,
+    borderRadius: 8,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
@@ -902,7 +967,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 16,
+    borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 4,
   },
@@ -938,8 +1003,8 @@ const styles = StyleSheet.create({
   },
   segment: {
     flexDirection: "row",
-    backgroundColor: "#EFE3D4",
-    borderRadius: 16,
+    backgroundColor: colors.mist,
+    borderRadius: 10,
     padding: 4,
   },
   segmentItem: {
@@ -947,7 +1012,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: 38,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   segmentItemActive: {
     backgroundColor: colors.surface,
@@ -972,7 +1037,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 18,
+    borderRadius: 8,
     padding: 16,
   },
   noticeTitle: {
@@ -990,7 +1055,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 9,
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.line,
     padding: 28,
@@ -1013,14 +1078,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 18,
     ...shadow,
   },
   avatar: {
     width: 58,
     height: 58,
-    borderRadius: 29,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primary,
@@ -1046,7 +1111,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 16,
+    borderRadius: 8,
     paddingVertical: 15,
   },
   statValue: {
@@ -1063,7 +1128,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 18,
+    borderRadius: 8,
     padding: 15,
   },
   settingRow: {
@@ -1073,7 +1138,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 16,
+    borderRadius: 8,
     padding: 15,
   },
   settingTitle: {

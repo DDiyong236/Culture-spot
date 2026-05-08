@@ -184,12 +184,12 @@ export default function CafeRegisterForm() {
 
     const savedCafe: CafeSpace = {
       id: `registered-cafe-${Date.now()}`,
-      name: form.name || "새로운 동네 카페",
+      name: form.name || "새로운 동네 장소",
       region: form.neighborhood || form.city || "등록 예정",
       address: address || "주소 입력 예정",
       description:
         form.description ||
-        "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 카페입니다.",
+        "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 소상공인 공간입니다.",
       availableTypes,
       capacity: Math.max(6, Math.min(form.seats, 24)),
       seats: form.seats,
@@ -206,7 +206,7 @@ export default function CafeRegisterForm() {
       pricePerHour: form.priceType === "paid" ? form.pricePerHour : 0,
       atmosphere:
         form.noiseTolerance === "low"
-          ? "조용하고 카페 본연의 분위기를 살린 갤러리형 공간"
+          ? "조용하고 매장 본연의 분위기를 살린 갤러리형 공간"
           : "따뜻하고 유연한 커뮤니티형 공간",
       image: spaceImages[0],
       images: spaceImages,
@@ -237,24 +237,24 @@ export default function CafeRegisterForm() {
         className="rounded-lg border border-line bg-white p-5 shadow-soft"
       >
         <div>
-          <p className="text-sm font-semibold text-accent">카페 공간 레이어</p>
+          <p className="text-sm font-semibold text-accent">소상공인 공간 레이어</p>
           <h2 className="mt-1 text-2xl font-bold text-ink">
-            운영 중인 카페의 작은 문화 공간을 등록하세요
+            운영 중인 장소의 작은 문화 공간을 등록하세요
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            Local Stage는 카페 영업을 유지한 채, 잘 맞는 아티스트와 작은
-            문화 경험이 공간 안에 자연스럽게 놓이도록 돕습니다.
+            컬처 SPOT!은 동네 가게, 공방, 서점, 편집숍처럼 소상공인이
+            운영하는 공간에 잘 맞는 아티스트와 작은 문화 경험을 연결합니다.
           </p>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="space-y-1.5">
-            <span className="label">카페 이름</span>
+            <span className="label">장소명</span>
             <input
               className="form-field"
               value={form.name}
               onChange={(event) => update("name", event.target.value)}
-              placeholder="연남 윈도우 카페"
+              placeholder="연남 작은가게"
             />
           </label>
           <label className="space-y-1.5">
@@ -400,7 +400,7 @@ export default function CafeRegisterForm() {
                 <>
                   <img
                     src={form.spaceImages[0]}
-                    alt="대표로 등록할 카페 공간 사진"
+                    alt="대표로 등록할 장소 사진"
                     className="h-full min-h-64 w-full object-cover"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-16 text-white">
@@ -409,7 +409,7 @@ export default function CafeRegisterForm() {
                       대표 이미지
                     </p>
                     <p className="mt-2 text-sm font-semibold">
-                      카페 카드와 상세 화면에 먼저 표시됩니다.
+                      장소 카드와 상세 화면에 먼저 표시됩니다.
                     </p>
                   </div>
                   <button
@@ -431,8 +431,8 @@ export default function CafeRegisterForm() {
                   </span>
                   <span className="text-base font-bold">공간 사진 추가</span>
                   <span className="text-sm leading-6 text-ink/62">
-                    벽면, 좌석, 코너처럼 실제로 사용할 공간이 보이는 사진을
-                    넣어주세요.
+                    매장 전면, 벽면, 좌석, 진열대처럼 실제로 사용할 공간이
+                    보이는 사진을 넣어주세요.
                   </span>
                 </label>
               )}
@@ -481,7 +481,7 @@ export default function CafeRegisterForm() {
                     >
                       <img
                         src={image}
-                        alt={`등록할 카페 공간 사진 ${index + 1}`}
+                        alt={`등록할 장소 사진 ${index + 1}`}
                         className="h-24 w-full object-cover"
                       />
                       {index === 0 ? (
@@ -510,7 +510,7 @@ export default function CafeRegisterForm() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-line bg-white p-4 text-sm leading-6 text-ink/62">
-                  사진을 넣지 않으면 기본 카페 이미지가 임시로 사용됩니다.
+                  사진을 넣지 않으면 기본 장소 이미지가 임시로 사용됩니다.
                 </div>
               )}
 
@@ -571,12 +571,12 @@ export default function CafeRegisterForm() {
         </fieldset>
 
         <label className="mt-4 block space-y-1.5">
-          <span className="label">카페 설명</span>
+          <span className="label">장소 설명</span>
           <textarea
             className="form-field min-h-28"
             value={form.description}
             onChange={(event) => update("description", event.target.value)}
-            placeholder="카페의 분위기, 벽면이나 코너 상태, 일반 손님이 있는 상태에서 이벤트가 어떻게 자연스럽게 진행될 수 있는지 적어주세요."
+            placeholder="매장의 분위기, 벽면이나 코너 상태, 손님이 오가는 중에도 문화 활동이 자연스럽게 놓일 수 있는 방식을 적어주세요."
           />
         </label>
 

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Coffee, Heart, Palette, Store } from "lucide-react";
+import { ArrowRight, Check, Coffee, Palette, Store } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -12,15 +12,8 @@ const roleOptions: Array<{
   title: string;
   description: string;
   points: string[];
-  icon: typeof Heart;
+  icon: typeof Palette;
 }> = [
-  {
-    role: "consumer",
-    title: "사용자",
-    description: "동네 카페 공간과 아티스트를 둘러봅니다.",
-    points: ["공간 탐색", "아티스트 저장", "후기 작성"],
-    icon: Heart,
-  },
   {
     role: "creator",
     title: "아티스트",
@@ -40,7 +33,9 @@ const roleOptions: Array<{
 export default function OnboardingForm() {
   const router = useRouter();
   const { login, user } = useAuth();
-  const [role, setRole] = useState<UserRole>(user?.role ?? "consumer");
+  const [role, setRole] = useState<UserRole>(
+    user?.role === "cafeOwner" ? "cafeOwner" : "creator",
+  );
   const [identifier, setIdentifier] = useState(user?.email ?? "");
   const [password, setPassword] = useState("");
   const [rememberLogin, setRememberLogin] = useState(true);
@@ -145,7 +140,7 @@ export default function OnboardingForm() {
           <legend className="px-1 text-sm font-bold text-primary">
             시연 역할 선택
           </legend>
-          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
             {roleOptions.map((option) => {
               const Icon = option.icon;
               const active = role === option.role;
