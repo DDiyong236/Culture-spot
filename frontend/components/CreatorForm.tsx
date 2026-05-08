@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import type { CreatorProject, EventType, MatchingResult } from "@/types";
 import { cafeSpaces } from "@/data/mock";
 import { rankCafeMatches } from "@/lib/matching";
-import MatchingResultCard from "@/components/MatchingResultCard";
+import CafeCard from "@/components/CafeCard";
 
 const conditionOptions = [
   "벽면 공간",
@@ -70,7 +70,7 @@ export default function CreatorForm() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="space-y-6">
       <form
         onSubmit={handleSubmit}
         className="rounded-lg border border-line bg-white p-5 shadow-soft"
@@ -86,7 +86,7 @@ export default function CreatorForm() {
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="space-y-1.5">
             <span className="label">창작자 이름</span>
             <input
@@ -112,6 +112,15 @@ export default function CreatorForm() {
               value={form.projectTitle}
               onChange={(event) => update("projectTitle", event.target.value)}
               placeholder="비 온 뒤의 창문"
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className="label">희망 지역</span>
+            <input
+              className="form-field"
+              value={form.preferredRegion}
+              onChange={(event) => update("preferredRegion", event.target.value)}
+              placeholder="연남"
             />
           </label>
           <label className="space-y-1.5">
@@ -142,15 +151,6 @@ export default function CreatorForm() {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="label">희망 지역</span>
-            <input
-              className="form-field"
-              value={form.preferredRegion}
-              onChange={(event) => update("preferredRegion", event.target.value)}
-              placeholder="연남"
-            />
-          </label>
-          <label className="space-y-1.5">
             <span className="label">예산</span>
             <input
               className="form-field"
@@ -161,7 +161,7 @@ export default function CreatorForm() {
               onChange={(event) => update("budget", Number(event.target.value))}
             />
           </label>
-          <label className="space-y-1.5 sm:col-span-2">
+          <label className="space-y-1.5 sm:col-span-2 lg:col-span-1">
             <span className="label">희망 시간대</span>
             <select
               className="form-field"
@@ -177,36 +177,27 @@ export default function CreatorForm() {
           </label>
         </div>
 
-        <fieldset className="mt-4">
-          <legend className="label">필요한 공간 조건</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {conditionOptions.map((condition) => (
-              <label
-                key={condition}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-background px-3 py-2 text-sm font-medium text-primary"
-              >
-                <input
-                  type="checkbox"
-                  checked={form.requiredConditions.includes(condition)}
-                  onChange={() => toggleCondition(condition)}
-                  className="size-4 rounded border-line accent-accent"
-                />
-                {condition}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[0.62fr_0.38fr]">
+          <fieldset>
+            <legend className="label">필요한 공간 조건</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {conditionOptions.map((condition) => (
+                <label
+                  key={condition}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-background px-3 py-2 text-sm font-medium text-primary"
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.requiredConditions.includes(condition)}
+                    onChange={() => toggleCondition(condition)}
+                    className="size-4 rounded border-line accent-accent"
+                  />
+                  {condition}
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
-        <div className="mt-4 grid gap-4">
-          <label className="space-y-1.5">
-            <span className="label">프로젝트 소개</span>
-            <textarea
-              className="form-field min-h-28"
-              value={form.introduction}
-              onChange={(event) => update("introduction", event.target.value)}
-              placeholder="프로젝트의 분위기, 관객 경험, 운영 중인 카페 안에서 자연스럽게 진행되는 방식을 적어주세요."
-            />
-          </label>
           <label className="space-y-1.5">
             <span className="label">포트폴리오 URL</span>
             <input
@@ -214,6 +205,18 @@ export default function CreatorForm() {
               value={form.portfolioUrl}
               onChange={(event) => update("portfolioUrl", event.target.value)}
               placeholder="https://"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <label className="space-y-1.5">
+            <span className="label">프로젝트 소개</span>
+            <textarea
+              className="form-field min-h-24"
+              value={form.introduction}
+              onChange={(event) => update("introduction", event.target.value)}
+              placeholder="프로젝트의 분위기, 관객 경험, 운영 중인 카페 안에서 자연스럽게 진행되는 방식을 적어주세요."
             />
           </label>
         </div>
@@ -227,20 +230,31 @@ export default function CreatorForm() {
         </button>
       </form>
 
-      <section className="space-y-4">
+      <section className="space-y-5">
         {results.length ? (
           <>
-            <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
-              <p className="text-sm font-semibold text-accent">
-                추천 매칭
+            <div className="flex flex-col justify-between gap-3 rounded-lg border border-line bg-white p-5 shadow-soft sm:flex-row sm:items-end">
+              <div>
+                <p className="text-sm font-semibold text-accent">추천 매칭</p>
+                <h2 className="mt-1 text-2xl font-bold text-ink">
+                  이 프로젝트에 어울리는 카페 공간
+                </h2>
+              </div>
+              <p className="text-sm font-semibold text-primary">
+                추천 {results.length}곳
               </p>
-              <h2 className="mt-1 text-2xl font-bold text-ink">
-                이 프로젝트에 어울리는 카페 공간
-              </h2>
             </div>
-            {results.map((result) => (
-              <MatchingResultCard key={result.cafe.id} result={result} />
-            ))}
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {results.map((result) => (
+                <CafeCard
+                  key={result.cafe.id}
+                  cafe={result.cafe}
+                  score={result.totalScore}
+                  reason={result.recommendationReason}
+                  compact
+                />
+              ))}
+            </div>
           </>
         ) : (
           <div className="rounded-lg border border-line bg-white p-6 shadow-soft">
