@@ -14,11 +14,11 @@ class ProjectService (
     private val userRepository: UserRepository
 ){
     @Transactional
-    fun registerProject(request: ProjectRequest, creatorId: Long): Long{
-        val creator = userRepository.findById(creatorId)
+    fun registerProject(request: ProjectRequest, userId: Long): Long{
+        val user = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException("존재하지 않는 크리에이터입니다.") }
         val project = Project(
-            creator = creator,
+            creator = user,
             title = request.title,
             eventType = request.eventType,
             genre = request.genre,
