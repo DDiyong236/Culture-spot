@@ -71,7 +71,7 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
         className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
       >
         <Music2 size={16} aria-hidden="true" />
-        우리 카페와 맞춰보기
+        협업 신청하기
       </button>
 
       {isChoosing ? (
