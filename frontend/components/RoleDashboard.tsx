@@ -18,9 +18,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import StatCard from "@/components/StatCard";
-import { cafeSpaces, creators, events } from "@/data/mock";
+import { cafeSpaces, creators } from "@/data/mock";
 import {
   CAFE_APPLICATION_STORAGE_KEY,
+  CAFE_CARD_STORAGE_KEY,
   GROUP_CARD_STORAGE_KEY,
 } from "@/lib/storageKeys";
 import {
@@ -28,8 +29,14 @@ import {
   readProjectApplications,
   type ProjectApplication,
 } from "@/lib/projectApplications";
-import { eventTypeLabel, roleLabel } from "@/lib/utils";
-import type { CreatorProject } from "@/types";
+import {
+  baseLikeCount,
+  equipmentLabel,
+  eventTypeLabel,
+  formatOpeningHours,
+  roleLabel,
+} from "@/lib/utils";
+import type { CafeSpace, CreatorProject } from "@/types";
 
 type CafeApplication = {
   id: string;
@@ -216,6 +223,15 @@ function CreatorDashboard() {
     );
   }, [applications]);
 
+  const sentCafeProposals = useMemo(
+    () =>
+      [...applications].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [applications],
+  );
+
   const acceptedRequests = useMemo(
     () =>
       receivedRequests.filter(
@@ -348,33 +364,36 @@ function CreatorDashboard() {
         <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-accent">아티스트 일정</p>
+              <p className="text-sm font-semibold text-accent">보낸 협업 제안</p>
               <h2 className="mt-1 text-2xl font-bold text-ink">
-                작업실에서 보는 일정
+                사장님에게 보낸 제안
               </h2>
             </div>
             <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
-              {artistScheduleItems.length}개
+              {sentCafeProposals.length}건
             </span>
           </div>
 
           <div className="mt-5 space-y-3">
-            {artistScheduleItems.length ? (
-              artistScheduleItems.map((schedule) => (
+            {sentCafeProposals.length ? (
+              sentCafeProposals.slice(0, 4).map((proposal) => (
                 <Link
-                  key={schedule.id}
-                  href={schedule.href}
+                  key={proposal.id}
+                  href={`/cafes/${proposal.cafeId}`}
                   className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-bold text-primary">{schedule.title}</p>
+                      <p className="font-bold text-primary">
+                        {proposal.projectTitle || "프로젝트 제목 미입력"}
+                      </p>
                       <p className="mt-1 text-sm text-ink/64">
-                        {schedule.cafeName}
+                        {proposal.groupName || "이름 없는 그룹"} →{" "}
+                        {proposal.cafeName}
                       </p>
                     </div>
-                    <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
-                      {schedule.status}
+                    <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">
+                      대기 중
                     </span>
                   </div>
                   <div className="mt-3 grid gap-2 text-sm text-ink/70 sm:grid-cols-2">
@@ -384,15 +403,11 @@ function CreatorDashboard() {
                         className="text-sage"
                         aria-hidden="true"
                       />
-                      {schedule.dateLabel}
+                      제안일 {formatShortDate(proposal.createdAt)}
                     </p>
                     <p className="flex items-center gap-2">
-                      <CheckCircle2
-                        size={15}
-                        className="text-sage"
-                        aria-hidden="true"
-                      />
-                      {schedule.timeLabel}
+                      <Store size={15} className="text-sage" aria-hidden="true" />
+                      카페 상세 보기
                     </p>
                   </div>
                 </Link>
@@ -400,17 +415,83 @@ function CreatorDashboard() {
             ) : (
               <div className="rounded-lg border border-dashed border-line bg-background p-5">
                 <p className="font-bold text-primary">
-                  아직 표시할 일정이 없습니다.
+                  아직 사장님에게 보낸 제안이 없습니다.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink/70">
-                  프로젝트 카드를 저장하거나 협업 요청을 수락하면 일정이 이곳에
-                  쌓입니다.
+                  공간 찾기에서 카페를 선택하고 그룹 카드로 신청하면 보낸 제안이
+                  이곳에 표시됩니다.
                 </p>
               </div>
             )}
           </div>
         </section>
       </div>
+
+      <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-sm font-semibold text-accent">아티스트 일정</p>
+            <h2 className="mt-1 text-2xl font-bold text-ink">
+              작업실에서 보는 일정
+            </h2>
+          </div>
+          <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
+            {artistScheduleItems.length}개
+          </span>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {artistScheduleItems.length ? (
+            artistScheduleItems.map((schedule) => (
+              <Link
+                key={schedule.id}
+                href={schedule.href}
+                className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-primary">{schedule.title}</p>
+                    <p className="mt-1 text-sm text-ink/64">
+                      {schedule.cafeName}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+                    {schedule.status}
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-2 text-sm text-ink/70 sm:grid-cols-2">
+                  <p className="flex items-center gap-2">
+                    <CalendarClock
+                      size={15}
+                      className="text-sage"
+                      aria-hidden="true"
+                    />
+                    {schedule.dateLabel}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CheckCircle2
+                      size={15}
+                      className="text-sage"
+                      aria-hidden="true"
+                    />
+                    {schedule.timeLabel}
+                  </p>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
+              <p className="font-bold text-primary">
+                아직 표시할 일정이 없습니다.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-ink/70">
+                프로젝트 카드를 저장하거나 협업 요청을 수락하면 일정이 이곳에
+                쌓입니다.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[0.58fr_0.42fr]">
         <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
@@ -536,55 +617,386 @@ function CreatorDashboard() {
 }
 
 function CafeOwnerDashboard() {
+  const { reviews } = useAuth();
+  const [registeredCafes, setRegisteredCafes] = useState<CafeSpace[]>([]);
+  const [receivedApplications, setReceivedApplications] = useState<
+    CafeApplication[]
+  >([]);
+  const [sentRequests, setSentRequests] = useState<ProjectApplication[]>([]);
+
+  useEffect(() => {
+    setRegisteredCafes(readStorage<CafeSpace[]>(CAFE_CARD_STORAGE_KEY, []));
+    setReceivedApplications(
+      readStorage<CafeApplication[]>(CAFE_APPLICATION_STORAGE_KEY, []),
+    );
+    setSentRequests(readProjectApplications());
+  }, []);
+
+  const cafeIds = useMemo(
+    () => new Set(registeredCafes.map((cafe) => cafe.id)),
+    [registeredCafes],
+  );
+  const cafeReviews = useMemo(
+    () =>
+      reviews.filter(
+        (review) => review.targetType === "cafe" && cafeIds.has(review.targetId),
+      ),
+    [cafeIds, reviews],
+  );
+  const averageRating = cafeReviews.length
+    ? (
+        cafeReviews.reduce((total, review) => total + review.rating, 0) /
+        cafeReviews.length
+      ).toFixed(1)
+    : "-";
+  const expectedLikes = registeredCafes.reduce(
+    (total, cafe) => total + baseLikeCount(cafe.id),
+    0,
+  );
+  const acceptedRequests = sentRequests.filter(
+    (request) => projectApplicationStatus(request) === "accepted",
+  );
+  const pendingSentRequests = sentRequests.filter(
+    (request) => projectApplicationStatus(request) !== "accepted",
+  );
+  const todoItems = [
+    {
+      label: "카페 공간 등록하기",
+      done: registeredCafes.length > 0,
+      helper: registeredCafes.length
+        ? "등록된 카페 공간이 있습니다."
+        : "먼저 운영 중인 카페 공간을 등록하세요.",
+    },
+    {
+      label: "받은 협업 신청 확인하기",
+      done: receivedApplications.length === 0,
+      helper: receivedApplications.length
+        ? `${receivedApplications.length}건의 아티스트 신청을 확인하세요.`
+        : "새로 들어온 신청이 없습니다.",
+    },
+    {
+      label: "보낸 협업 요청 상태 보기",
+      done: pendingSentRequests.length === 0,
+      helper: pendingSentRequests.length
+        ? `${pendingSentRequests.length}건이 아직 대기 중입니다.`
+        : "대기 중인 보낸 요청이 없습니다.",
+    },
+    {
+      label: "사용자 리뷰 확인하기",
+      done: cafeReviews.length === 0,
+      helper: cafeReviews.length
+        ? `${cafeReviews.length}개의 리뷰를 확인해보세요.`
+        : "아직 새 리뷰가 없습니다.",
+    },
+  ];
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.4fr_0.6fr]">
+    <div className="space-y-6">
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-        <div className="flex size-11 items-center justify-center rounded-lg bg-primary text-white">
-          <Store size={22} aria-hidden="true" />
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-sm font-semibold text-accent">내 카페 정보</p>
+            <h2 className="mt-1 text-2xl font-bold text-ink">
+              등록한 카페 공간 요약
+            </h2>
+          </div>
+          <Link
+            href="/cafes/register"
+            className="focus-ring inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
+          >
+            카페 공간 등록하기
+          </Link>
         </div>
-        <h2 className="mt-5 text-2xl font-bold text-ink">카페 운영 화면</h2>
-        <p className="mt-3 text-sm leading-6 text-ink/70">
-          영업을 유지하면서 활용 가능한 공간 이미지와 장비를 등록하고
-          아티스트 신청을 받을 수 있습니다.
-        </p>
-        <Link
-          href="/cafes/register"
-          className="focus-ring mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
-        >
-          카페 공간 등록하기
-        </Link>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {registeredCafes.length ? (
+            registeredCafes.map((cafe) => (
+              <article
+                key={cafe.id}
+                className="overflow-hidden rounded-lg border border-line bg-background"
+              >
+                <img
+                  src={cafe.image}
+                  alt={`${cafe.name} 공간 이미지`}
+                  className="h-44 w-full object-cover"
+                />
+                <div className="p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-xl font-bold text-ink">{cafe.name}</h3>
+                    {cafe.availableTypes.map((type) => (
+                      <span key={type} className="badge">
+                        {eventTypeLabel(type)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 flex items-center gap-2 text-sm text-primary/75">
+                    <MapPin size={15} aria-hidden="true" />
+                    {cafe.address}
+                  </p>
+                  <div className="mt-4 grid gap-2 text-sm text-ink/70 sm:grid-cols-2">
+                    <p className="flex items-center gap-2">
+                      <CalendarClock
+                        size={15}
+                        className="text-sage"
+                        aria-hidden="true"
+                      />
+                      {formatOpeningHours(cafe)}
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Store size={15} className="text-sage" aria-hidden="true" />
+                      {cafe.equipment.map(equipmentLabel).join(", ")}
+                    </p>
+                  </div>
+                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-ink/70">
+                    {cafe.description}
+                  </p>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
+              <p className="font-bold text-primary">
+                아직 등록된 카페 공간이 없습니다.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-ink/70">
+                카페를 등록하면 운영 시간, 이미지, 가능한 이벤트 유형이 이곳에
+                표시됩니다.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <p className="text-sm font-semibold text-accent">받은 협업 신청</p>
+          <h2 className="mt-1 text-2xl font-bold text-ink">
+            아티스트가 보낸 신청
+          </h2>
+          <div className="mt-5 space-y-3">
+            {receivedApplications.length ? (
+              receivedApplications.map((application) => (
+                <article
+                  key={application.id}
+                  className="rounded-lg border border-line bg-background p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-primary">
+                        {application.projectTitle}
+                      </p>
+                      <p className="mt-1 text-sm text-ink/64">
+                        {application.groupName} · {application.cafeName}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">
+                      확인 필요
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm text-ink/64">
+                    신청일 {formatShortDate(application.createdAt)}
+                  </p>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-5">
+                <p className="font-bold text-primary">
+                  아직 받은 협업 신청이 없습니다.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">
+                  아티스트가 공간 찾기에서 신청하면 이곳에 표시됩니다.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <p className="text-sm font-semibold text-accent">보낸 협업 요청</p>
+          <h2 className="mt-1 text-2xl font-bold text-ink">
+            아티스트에게 보낸 제안
+          </h2>
+          <div className="mt-5 space-y-3">
+            {sentRequests.length ? (
+              sentRequests.map((request) => {
+                const accepted = projectApplicationStatus(request) === "accepted";
+
+                return (
+                  <Link
+                    key={request.id}
+                    href={`/requests/${request.id}`}
+                    className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-bold text-primary">
+                          {request.projectTitle}
+                        </p>
+                        <p className="mt-1 text-sm text-ink/64">
+                          {request.creatorName} · {request.cafeName}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-bold ${
+                          accepted ? "bg-sage text-white" : "bg-accent text-white"
+                        }`}
+                      >
+                        {accepted ? "수락됨" : "대기 중"}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-ink/64">
+                      요청일 {formatShortDate(request.createdAt)}
+                    </p>
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-5">
+                <p className="font-bold text-primary">
+                  아직 보낸 협업 요청이 없습니다.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">
+                  아티스트 프로젝트 찾기에서 마음에 드는 프로젝트에 협업
+                  신청을 보내보세요.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-        <h2 className="text-xl font-bold text-ink">운영 지표 예시</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <article className="rounded-lg border border-line bg-background p-4">
-            <p className="text-sm font-semibold text-primary/70">
-              이번 달 매칭 요청
-            </p>
-            <p className="mt-2 text-3xl font-bold text-ink">12</p>
-          </article>
-          <article className="rounded-lg border border-line bg-background p-4">
-            <p className="text-sm font-semibold text-primary/70">
-              조용한 시간 활용률
-            </p>
-            <p className="mt-2 text-3xl font-bold text-ink">68%</p>
-          </article>
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-sm font-semibold text-accent">예정된 문화 일정</p>
+            <h2 className="mt-1 text-2xl font-bold text-ink">
+              수락된 협업 일정
+            </h2>
+          </div>
+          <Link
+            href="/projects"
+            className="focus-ring inline-flex items-center justify-center rounded-lg border border-line bg-background px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent"
+          >
+            아티스트 프로젝트 찾기
+          </Link>
         </div>
-        <div className="mt-4 space-y-3">
-          {events.slice(0, 3).map((event) => (
-            <article
-              key={event.id}
-              className="rounded-lg border border-line bg-background p-4"
-            >
-              <p className="font-bold text-primary">{event.title}</p>
-              <p className="mt-1 text-sm text-ink/64">
-                {event.date} · {event.time}
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {acceptedRequests.length ? (
+            acceptedRequests.map((request) => (
+              <Link
+                key={request.id}
+                href={`/requests/${request.id}`}
+                className="focus-ring block rounded-lg border border-line bg-background p-4 transition hover:border-accent hover:bg-white"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-primary">
+                      {request.projectTitle}
+                    </p>
+                    <p className="mt-1 text-sm text-ink/64">
+                      {request.creatorName} · {request.cafeName}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-sage px-3 py-1 text-xs font-bold text-white">
+                    일정 협의
+                  </span>
+                </div>
+                <p className="mt-3 flex items-center gap-2 text-sm text-ink/70">
+                  <CalendarClock size={15} className="text-sage" aria-hidden="true" />
+                  {request.acceptedAt
+                    ? `${formatShortDate(request.acceptedAt)} 수락`
+                    : "수락 완료"}
+                </p>
+              </Link>
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
+              <p className="font-bold text-primary">
+                아직 예정된 문화 일정이 없습니다.
               </p>
-            </article>
-          ))}
+              <p className="mt-2 text-sm leading-6 text-ink/70">
+                아티스트가 협업 요청을 수락하면 이곳에 일정으로 표시됩니다.
+              </p>
+            </div>
+          )}
         </div>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-[0.45fr_0.55fr]">
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <p className="text-sm font-semibold text-accent">오늘 해야 할 일</p>
+          <h2 className="mt-1 text-2xl font-bold text-ink">운영 체크리스트</h2>
+          <div className="mt-5 space-y-3">
+            {todoItems.map((item) => (
+              <article
+                key={item.label}
+                className="flex gap-3 rounded-lg border border-line bg-background p-4"
+              >
+                <span
+                  className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${
+                    item.done ? "bg-sage text-white" : "bg-accent text-white"
+                  }`}
+                >
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-bold text-primary">{item.label}</p>
+                  <p className="mt-1 text-sm leading-6 text-ink/70">
+                    {item.helper}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+          <p className="text-sm font-semibold text-accent">리뷰/반응 요약</p>
+          <h2 className="mt-1 text-2xl font-bold text-ink">
+            사용자 반응 확인
+          </h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <article className="rounded-lg border border-line bg-background p-4">
+              <p className="text-sm font-semibold text-primary/70">평균 평점</p>
+              <p className="mt-2 text-3xl font-bold text-ink">{averageRating}</p>
+            </article>
+            <article className="rounded-lg border border-line bg-background p-4">
+              <p className="text-sm font-semibold text-primary/70">관심 반응</p>
+              <p className="mt-2 text-3xl font-bold text-ink">{expectedLikes}</p>
+            </article>
+          </div>
+          <div className="mt-4 space-y-3">
+            {cafeReviews.length ? (
+              cafeReviews.slice(0, 3).map((review) => (
+                <article
+                  key={review.id}
+                  className="rounded-lg border border-line bg-background p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-bold text-primary">{review.targetName}</p>
+                    <p className="inline-flex items-center gap-1 text-sm font-bold text-accent">
+                      <Star size={14} className="fill-current" aria-hidden="true" />
+                      {review.rating}점
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-ink/70">
+                    {review.content}
+                  </p>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-5">
+                <p className="font-bold text-primary">
+                  아직 등록된 리뷰가 없습니다.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">
+                  사용자가 카페 상세 페이지에서 후기를 남기면 이곳에 표시됩니다.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

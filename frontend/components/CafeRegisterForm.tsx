@@ -10,6 +10,11 @@ import type {
   PriceType,
 } from "@/types";
 import CafeCard from "@/components/CafeCard";
+import {
+  getCityOptions,
+  getProvinceOptions,
+  getRegionOptions,
+} from "@/lib/locations";
 import { equipmentLabel, eventTypeLabel } from "@/lib/utils";
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 
@@ -29,7 +34,10 @@ const eventOptions: EventType[] = [
 
 type CafeFormState = {
   name: string;
-  address: string;
+  province: string;
+  city: string;
+  neighborhood: string;
+  detailAddress: string;
   operatingHours: string;
   noiseTolerance: NoiseTolerance;
   seats: number;
@@ -40,6 +48,19 @@ type CafeFormState = {
   spaceImage: string;
   description: string;
 };
+
+const provinceOptions = getProvinceOptions();
+
+function buildAddress(form: CafeFormState) {
+  return [
+    form.province,
+    form.city,
+    form.neighborhood,
+    form.detailAddress.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 function recommendEventTypes(form: CafeFormState) {
   const recommendations = new Set<EventType>();
@@ -63,7 +84,10 @@ function recommendEventTypes(form: CafeFormState) {
 export default function CafeRegisterForm() {
   const [form, setForm] = useState<CafeFormState>({
     name: "",
-    address: "",
+    province: "",
+    city: "",
+    neighborhood: "",
+    detailAddress: "",
     operatingHours: "10:00 - 22:00",
     noiseTolerance: "low",
     seats: 34,
@@ -77,6 +101,17 @@ export default function CafeRegisterForm() {
   const [preview, setPreview] = useState<CafeSpace | null>(null);
 
   const recommendedTypes = useMemo(() => recommendEventTypes(form), [form]);
+  const cityOptions = useMemo(
+    () => (form.province ? getCityOptions(form.province) : []),
+    [form.province],
+  );
+  const neighborhoodOptions = useMemo(
+    () =>
+      form.province && form.city
+        ? getRegionOptions(form.province, form.city)
+        : [],
+    [form.city, form.province],
+  );
 
   function update<K extends keyof CafeFormState>(
     key: K,
@@ -107,6 +142,7 @@ export default function CafeRegisterForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const address = buildAddress(form);
     const availableTypes = form.preferredEventTypes.length
       ? form.preferredEventTypes
       : recommendedTypes;
@@ -120,8 +156,8 @@ export default function CafeRegisterForm() {
     const savedCafe: CafeSpace = {
       id: `registered-cafe-${Date.now()}`,
       name: form.name || "새로운 동네 카페",
-      region: "등록 예정",
-      address: form.address || "주소 입력 예정",
+      region: form.neighborhood || form.city || "등록 예정",
+      address: address || "주소 입력 예정",
       description:
         form.description ||
         "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 카페입니다.",
@@ -193,13 +229,77 @@ export default function CafeRegisterForm() {
               placeholder="연남 윈도우 카페"
             />
           </label>
+          <label className="space-y-1.5">
+            <span className="label">도/시</span>
+            <select
+              className="form-field"
+              value={form.province}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  province: event.target.value,
+                  city: "",
+                  neighborhood: "",
+                }))
+              }
+            >
+              <option value="">도/시 선택</option>
+              {provinceOptions.map((province) => (
+                <option key={province} value={province}>
+                  {province}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1.5">
+            <span className="label">시군구</span>
+            <select
+              className="form-field"
+              value={form.city}
+              disabled={!form.province}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  city: event.target.value,
+                  neighborhood: "",
+                }))
+              }
+            >
+              <option value="">
+                {form.province ? "시군구 선택" : "도/시를 먼저 선택"}
+              </option>
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1.5">
+            <span className="label">동네</span>
+            <select
+              className="form-field"
+              value={form.neighborhood}
+              disabled={!form.province || !form.city}
+              onChange={(event) => update("neighborhood", event.target.value)}
+            >
+              <option value="">
+                {form.city ? "동네 선택" : "시군구를 먼저 선택"}
+              </option>
+              {neighborhoodOptions.map((neighborhood) => (
+                <option key={neighborhood} value={neighborhood}>
+                  {neighborhood}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="space-y-1.5 sm:col-span-2">
-            <span className="label">주소</span>
+            <span className="label">상세주소</span>
             <input
               className="form-field"
-              value={form.address}
-              onChange={(event) => update("address", event.target.value)}
-              placeholder="상세 주소"
+              value={form.detailAddress}
+              onChange={(event) => update("detailAddress", event.target.value)}
+              placeholder="동교로38길 24, 2층"
             />
           </label>
           <label className="space-y-1.5">
