@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Coffee,
-  Heart,
   Palette,
   Store,
 } from "lucide-react";
@@ -18,14 +17,8 @@ const roleOptions: Array<{
   role: UserRole;
   title: string;
   description: string;
-  icon: typeof Heart;
+  icon: typeof Palette;
 }> = [
-  {
-    role: "consumer",
-    title: "사용자",
-    description: "동네 카페 공간과 아티스트를 둘러보고 후기를 남깁니다.",
-    icon: Heart,
-  },
   {
     role: "creator",
     title: "아티스트",
@@ -43,7 +36,7 @@ const roleOptions: Array<{
 export default function SignupForm() {
   const router = useRouter();
   const { login } = useAuth();
-  const [role, setRole] = useState<UserRole>("consumer");
+  const [role, setRole] = useState<UserRole>("creator");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -116,7 +109,7 @@ export default function SignupForm() {
 
       <fieldset className="mt-6">
         <legend className="label">가입 유형</legend>
-        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {roleOptions.map((option) => {
             const Icon = option.icon;
             const active = role === option.role;
