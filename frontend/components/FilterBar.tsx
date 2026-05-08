@@ -27,6 +27,9 @@ export default function FilterBar({
   locationOptions,
   onChange,
 }: FilterBarProps) {
+  const cityDisabled = filters.province === "all";
+  const regionDisabled = cityDisabled || filters.city === "all";
+
   return (
     <aside className="rounded-lg border border-line bg-white p-4 shadow-soft">
       <div className="flex items-center gap-2 text-primary">
@@ -63,6 +66,7 @@ export default function FilterBar({
           <select
             className="form-field"
             value={filters.city}
+            disabled={cityDisabled}
             onChange={(event) =>
               onChange({
                 ...filters,
@@ -71,7 +75,9 @@ export default function FilterBar({
               })
             }
           >
-            <option value="all">전체 시/군/구</option>
+            <option value="all">
+              {cityDisabled ? "도/시를 먼저 선택" : "전체 시/군/구"}
+            </option>
             {locationOptions.cities.map((city) => (
               <option key={city} value={city}>
                 {city}
@@ -85,11 +91,14 @@ export default function FilterBar({
           <select
             className="form-field"
             value={filters.region}
+            disabled={regionDisabled}
             onChange={(event) =>
               onChange({ ...filters, region: event.target.value })
             }
           >
-            <option value="all">전체 동네</option>
+            <option value="all">
+              {regionDisabled ? "시/군/구를 먼저 선택" : "전체 동네"}
+            </option>
             {locationOptions.regions.map((region) => (
               <option key={region} value={region}>
                 {region}
