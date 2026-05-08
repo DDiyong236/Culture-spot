@@ -37,10 +37,12 @@ export default function CafeCard({
     cafe.atmosphere,
     `소음 허용 ${noiseLabel(cafe.noiseTolerance)}`,
   ].filter((feature): feature is string => Boolean(feature));
+  const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-[9rem]";
+  const featureHeight = compact ? "min-h-[4.25rem]" : "min-h-[4.75rem]";
 
   return (
-    <article className="overflow-hidden rounded-lg border border-line bg-card shadow-soft">
-      <div className="relative h-48">
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-card shadow-soft">
+      <div className="relative h-48 shrink-0">
         <img
           src={cafe.image}
           alt={`${cafe.name} 내부 공간`}
@@ -57,8 +59,8 @@ export default function CafeCard({
           </div>
         ) : null}
       </div>
-      <div className="space-y-4 p-4">
-        <div>
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className={summaryHeight}>
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-bold text-ink">{cafe.name}</h3>
@@ -69,13 +71,13 @@ export default function CafeCard({
             </div>
           </div>
           {!compact ? (
-            <p className="mt-3 text-sm leading-6 text-ink/72">
+            <p className="mt-3 line-clamp-3 text-sm leading-6 text-ink/72">
               {cafe.description}
             </p>
           ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-h-[2.25rem] flex-wrap content-start gap-2">
           {cafe.availableTypes.map((type) => (
             <span key={type} className="badge">
               {eventTypeLabel(type)}
@@ -83,7 +85,7 @@ export default function CafeCard({
           ))}
         </div>
 
-        <div className="grid gap-2 text-sm text-ink/74 sm:grid-cols-2">
+        <div className="grid min-h-[5.75rem] content-start gap-2 text-sm text-ink/74 sm:grid-cols-2">
           <p className="flex items-center gap-2">
             <Users size={16} className="text-sage" aria-hidden="true" />
             수용 {cafe.capacity}명
@@ -102,7 +104,7 @@ export default function CafeCard({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className={`flex flex-wrap content-start gap-2 ${featureHeight}`}>
           {features.slice(0, 5).map((feature) => (
             <span
               key={feature}
@@ -120,8 +122,6 @@ export default function CafeCard({
           </p>
         ) : null}
 
-        <CafeCardAction />
-
         {!compact ? (
           <ConsumerEngagement
             targetId={cafe.id}
@@ -129,6 +129,10 @@ export default function CafeCard({
             targetName={cafe.name}
           />
         ) : null}
+
+        <div className="mt-auto">
+          <CafeCardAction />
+        </div>
       </div>
     </article>
   );

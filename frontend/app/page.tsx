@@ -3,15 +3,13 @@ import {
   Brush,
   Coffee,
   MapPin,
-  ScanLine,
   Sparkles,
   Store,
   Users,
 } from "lucide-react";
 import Hero from "@/components/Hero";
 import CafeCard from "@/components/CafeCard";
-import EventCard from "@/components/EventCard";
-import { cafeSpaces, creators, events } from "@/data/mock";
+import { cafeSpaces } from "@/data/mock";
 
 const flowSteps = [
   {
@@ -62,12 +60,6 @@ const userCards = [
 ];
 
 export default function HomePage() {
-  const featuredEvents = events.slice(0, 3).map((event) => ({
-    event,
-    cafe: cafeSpaces.find((cafe) => cafe.id === event.cafeId)!,
-    creator: creators.find((creator) => creator.id === event.creatorId)!,
-  }));
-
   return (
     <>
       <Hero />
@@ -167,36 +159,6 @@ export default function HomePage() {
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
             {cafeSpaces.slice(0, 3).map((cafe) => (
               <CafeCard key={cafe.id} cafe={cafe} compact />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="events" className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div className="max-w-2xl">
-              <p className="text-sm font-semibold text-accent">
-                동네 이벤트
-              </p>
-              <h2 className="mt-2 text-3xl font-bold text-ink">
-                일상적인 카페 방문 사이에 놓인 문화
-              </h2>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-primary">
-              <ScanLine size={17} aria-hidden="true" />
-              카페 현장 QR 프로필
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-5 lg:grid-cols-3">
-            {featuredEvents.map(({ event, cafe, creator }) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                cafe={cafe}
-                creator={creator}
-              />
             ))}
           </div>
         </div>

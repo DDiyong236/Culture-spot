@@ -158,7 +158,7 @@ export default function CafeRegisterForm() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="space-y-6">
       <form
         onSubmit={handleSubmit}
         className="rounded-lg border border-line bg-white p-5 shadow-soft"
@@ -174,7 +174,7 @@ export default function CafeRegisterForm() {
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="space-y-1.5">
             <span className="label">카페 이름</span>
             <input
@@ -268,7 +268,7 @@ export default function CafeRegisterForm() {
             </select>
           </label>
           {form.priceType === "paid" ? (
-            <label className="space-y-1.5 sm:col-span-2">
+            <label className="space-y-1.5 sm:col-span-2 lg:col-span-1">
               <span className="label">시간당 금액</span>
               <input
                 className="form-field"
@@ -388,10 +388,12 @@ export default function CafeRegisterForm() {
         </div>
 
         {preview ? (
-          <CafeCard
-            cafe={preview}
-            reason="이 미리보기는 창작자에게 보일 카페 공간 카드입니다. 매칭은 카페의 평소 영업을 방해하지 않는 작은 문화 활용을 우선합니다."
-          />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <CafeCard
+              cafe={preview}
+              reason="이 미리보기는 창작자에게 보일 카페 공간 카드입니다. 매칭은 카페의 평소 영업을 방해하지 않는 작은 문화 활용을 우선합니다."
+            />
+          </div>
         ) : (
           <div className="rounded-lg border border-line bg-white p-6 shadow-soft">
             <p className="text-sm font-semibold text-accent">공간 미리보기</p>

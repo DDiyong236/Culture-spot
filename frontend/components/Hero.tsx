@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, MapPin, Store } from "lucide-react";
+import { MapPin, Palette, Store } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -42,11 +42,11 @@ export default function Hero() {
               카페 등록하기
             </Link>
             <Link
-              href="/#events"
+              href="/creators"
               className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/45 bg-white/12 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20"
             >
-              <CalendarDays size={18} aria-hidden="true" />
-              동네 이벤트 보기
+              <Palette size={18} aria-hidden="true" />
+              창작자 등록하기
             </Link>
           </div>
         </div>

@@ -39,13 +39,13 @@ function ConsumerDashboard() {
         <StatCard
           label="즐겨찾기한 카페"
           value={favoriteCafes}
-          helper="공간 찾기와 이벤트 상세에서 카페를 저장할 수 있습니다."
+          helper="공간 찾기 카드에서 카페를 저장할 수 있습니다."
           icon={<Coffee size={20} aria-hidden="true" />}
         />
         <StatCard
           label="즐겨찾기한 창작자"
           value={favoriteCreators}
-          helper="이벤트 상세에서 관심 창작자를 저장할 수 있습니다."
+          helper="창작자 등록 흐름과 문화 활동에서 관심 창작자를 저장합니다."
           icon={<Palette size={20} aria-hidden="true" />}
         />
         <StatCard
@@ -76,8 +76,8 @@ function ConsumerDashboard() {
               ))
             ) : (
               <p className="text-sm leading-6 text-ink/70">
-                아직 즐겨찾기가 없습니다. 공간 찾기나 이벤트 상세에서 마음에
-                드는 카페와 창작자를 저장해보세요.
+                아직 즐겨찾기가 없습니다. 공간 찾기에서 마음에 드는 카페를
+                저장해보세요.
               </p>
             )}
           </div>
@@ -136,7 +136,7 @@ function CreatorDashboard() {
           href="/creators"
           className="focus-ring mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
         >
-          프로젝트 등록 및 매칭하기
+          창작자 등록하기
         </Link>
       </section>
 
@@ -175,7 +175,7 @@ function CafeOwnerDashboard() {
         <h2 className="mt-5 text-2xl font-bold text-ink">카페 운영 화면</h2>
         <p className="mt-3 text-sm leading-6 text-ink/70">
           영업을 유지하면서 활용 가능한 벽면, 코너, 한적한 시간대와 장비를
-          등록하고 창작자 매칭을 받을 수 있습니다.
+          등록하고 창작자 신청을 받을 수 있습니다.
         </p>
         <Link
           href="/cafes/register"
@@ -280,8 +280,8 @@ export default function RoleDashboard() {
             <h2 className="font-bold">소비자 기능 안내</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-ink/70">
-            공간 찾기 페이지의 카페 카드와 이벤트 상세 페이지에서 카페와
-            창작자를 즐겨찾기하고 후기를 남길 수 있습니다.
+            공간 찾기 페이지의 카페 카드에서 카페를 즐겨찾기하고 후기를
+            남길 수 있습니다.
           </p>
         </section>
       ) : null}

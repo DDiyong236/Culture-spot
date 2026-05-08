@@ -18,7 +18,7 @@ const roleOptions: Array<{
     role: "consumer",
     title: "동네 문화 소비자",
     description:
-      "기본 화면처럼 카페와 이벤트를 탐색하고, 로그인 후 즐겨찾기와 후기를 남깁니다.",
+      "기본 화면처럼 동네 카페 공간을 탐색하고, 로그인 후 즐겨찾기와 후기를 남깁니다.",
     points: ["카페 즐겨찾기", "창작자 저장", "후기 작성"],
     icon: Heart,
   },

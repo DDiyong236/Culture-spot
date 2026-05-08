@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, Palette, Store } from "lucide-react";
+import { Map, Palette, Store } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function CafeCardAction() {
@@ -33,11 +33,11 @@ export default function CafeCardAction() {
 
   return (
     <Link
-      href="/events/event-rain-windows"
+      href="/spaces"
       className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
     >
-      <CalendarDays size={16} aria-hidden="true" />
-      동네 이벤트 보기
+      <Map size={16} aria-hidden="true" />
+      공간 둘러보기
     </Link>
   );
 }
