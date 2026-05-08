@@ -15,6 +15,7 @@ import {
 import CafeLikeCount from "@/components/CafeLikeCount";
 import { useAuth } from "@/components/AuthProvider";
 import { cafeSpaces } from "@/data/mock";
+import { fetchPlaces } from "@/lib/placeApi";
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import {
   cafeSizeLabel,
@@ -79,12 +80,41 @@ export default function CafeDetailPage({
   const showConsumerActions = !hydrated || !user || user.role === "consumer";
 
   useEffect(() => {
-    const foundCafe =
-      cafeSpaces.find((item) => item.id === id) ??
-      readRegisteredCafes().find((item) => item.id === id) ??
-      null;
-    setCafe(foundCafe);
-    setReady(true);
+    let active = true;
+
+    async function loadCafe() {
+      setReady(false);
+
+      const localCafe =
+        cafeSpaces.find((item) => item.id === id) ??
+        readRegisteredCafes().find((item) => item.id === id) ??
+        null;
+
+      if (localCafe) {
+        if (!active) return;
+        setCafe(localCafe);
+        setReady(true);
+        return;
+      }
+
+      try {
+        const backendPlaces = await fetchPlaces();
+        if (!active) return;
+        setCafe(backendPlaces.find((item) => item.id === id) ?? null);
+      } catch {
+        if (!active) return;
+        setCafe(null);
+      } finally {
+        if (!active) return;
+        setReady(true);
+      }
+    }
+
+    loadCafe();
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const reviews = useMemo(() => {

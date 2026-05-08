@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Palette, Store } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function Hero() {
+  const { hydrated, user } = useAuth();
+  const canUseRoleActions = hydrated && user;
+  const cafeRegisterHref = canUseRoleActions ? "/cafes/register" : "/onboarding";
+  const groupRegisterHref = canUseRoleActions ? "/creators" : "/onboarding";
+
   return (
     <section className="relative isolate overflow-hidden bg-primary text-white">
       <img
@@ -35,14 +43,14 @@ export default function Hero() {
               공간 찾기
             </Link>
             <Link
-              href="/cafes/register"
+              href={cafeRegisterHref}
               className="focus-ring inline-flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-bold text-primary shadow-soft transition hover:bg-background"
             >
               <Store size={18} aria-hidden="true" />
               카페 등록하기
             </Link>
             <Link
-              href="/creators"
+              href={groupRegisterHref}
               className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/45 bg-white/12 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20"
             >
               <Palette size={18} aria-hidden="true" />

@@ -15,8 +15,9 @@ import {
   fetchPlaceCities,
   fetchPlaceDistricts,
   fetchPlaceNeighborhoods,
+  fetchPlaces,
 } from "@/lib/placeApi";
-import type { FilterState } from "@/types";
+import type { CafeSpace, FilterState } from "@/types";
 
 const defaultFilters: FilterState = {
   province: "all",
@@ -30,8 +31,27 @@ const defaultFilters: FilterState = {
   quiet: false,
 };
 
+function filterMockCafesByLocation(filters: FilterState) {
+  return cafeSpaces.filter((cafe) => {
+    const location = getCafeLocation(cafe);
+    if (filters.province !== "all" && location.province !== filters.province) {
+      return false;
+    }
+    if (filters.city !== "all" && location.city !== filters.city) {
+      return false;
+    }
+    if (filters.region !== "all" && location.region !== filters.region) {
+      return false;
+    }
+    return true;
+  });
+}
+
 export default function SpacesPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [cafes, setCafes] = useState<CafeSpace[]>(cafeSpaces);
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
+  const [isUsingMockFallback, setIsUsingMockFallback] = useState(false);
   const [apiLocationOptions, setApiLocationOptions] = useState({
     provinces: getProvinceOptions(),
     cities: [] as string[],
@@ -136,6 +156,35 @@ export default function SpacesPage() {
     };
   }, [filters.city, filters.province]);
 
+  useEffect(() => {
+    let active = true;
+
+    setIsLoadingPlaces(true);
+    fetchPlaces({
+      address1: filters.province,
+      address2: filters.city,
+      address3: filters.region,
+    })
+      .then((places) => {
+        if (!active) return;
+        setCafes(places);
+        setIsUsingMockFallback(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setCafes(filterMockCafesByLocation(filters));
+        setIsUsingMockFallback(true);
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsLoadingPlaces(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [filters.city, filters.province, filters.region]);
+
   const locationOptions = useMemo(
     () => ({
       provinces: apiLocationOptions.provinces,
@@ -161,17 +210,7 @@ export default function SpacesPage() {
     ],
   );
 
-  const filteredCafes = cafeSpaces.filter((cafe) => {
-    const location = getCafeLocation(cafe);
-    if (filters.province !== "all" && location.province !== filters.province) {
-      return false;
-    }
-    if (filters.city !== "all" && location.city !== filters.city) {
-      return false;
-    }
-    if (filters.region !== "all" && location.region !== filters.region) {
-      return false;
-    }
+  const filteredCafes = cafes.filter((cafe) => {
     if (filters.exhibition && !cafe.availableTypes.includes("exhibition")) {
       return false;
     }
@@ -224,10 +263,12 @@ export default function SpacesPage() {
 
         <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-sm font-semibold text-primary">
-            카페 공간 {scoredCafes.length}곳
+            카페 공간 {isLoadingPlaces ? "불러오는 중" : `${scoredCafes.length}곳`}
           </p>
           <p className="text-sm text-ink/62">
-            샘플 매칭: {sampleCreator.projectTitle}, {sampleCreator.genre}
+            {isUsingMockFallback
+              ? "백엔드 연결 실패로 목업 데이터를 표시 중입니다."
+              : `샘플 매칭: ${sampleCreator.projectTitle}, ${sampleCreator.genre}`}
           </p>
         </div>
 
@@ -240,6 +281,18 @@ export default function SpacesPage() {
             />
           ))}
         </div>
+
+        {!isLoadingPlaces && !scoredCafes.length ? (
+          <div className="mt-5 rounded-lg border border-line bg-white p-6 shadow-soft">
+            <p className="font-bold text-primary">
+              조건에 맞는 카페 공간이 없습니다.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-ink/70">
+              백엔드 검색 결과가 비어 있습니다. 지역 조건을 줄이거나 DB에 해당
+              지역의 place 데이터가 등록되어 있는지 확인해주세요.
+            </p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
