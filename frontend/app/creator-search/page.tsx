@@ -32,16 +32,20 @@ function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white shadow-soft">
-      <div className="relative h-48 shrink-0">
+      <Link
+        href={`/creators/${creator.id}`}
+        className="focus-ring relative block h-48 shrink-0 overflow-hidden"
+        aria-label={`${creator.projectTitle} 자세히 보기`}
+      >
         <img
           src={creatorImages[creator.eventType]}
           alt={`${creator.projectTitle} 프로젝트 이미지`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
         />
         <div className="absolute right-3 top-3 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-primary shadow-soft">
           {eventTypeLabel(creator.eventType)}
         </div>
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-4 p-4">
         <div className="flex items-start justify-between gap-3">
