@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CafeCard from "@/components/CafeCard";
 import FilterBar from "@/components/FilterBar";
 import { cafeSpaces, creators } from "@/data/mock";
@@ -11,6 +11,11 @@ import {
   getRegionOptions,
 } from "@/lib/locations";
 import { calculateMatchingScore } from "@/lib/matching";
+import {
+  fetchPlaceCities,
+  fetchPlaceDistricts,
+  fetchPlaceNeighborhoods,
+} from "@/lib/placeApi";
 import type { FilterState } from "@/types";
 
 const defaultFilters: FilterState = {
@@ -27,15 +32,134 @@ const defaultFilters: FilterState = {
 
 export default function SpacesPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [apiLocationOptions, setApiLocationOptions] = useState({
+    provinces: getProvinceOptions(),
+    cities: [] as string[],
+    regions: [] as string[],
+  });
   const sampleCreator = creators[0];
 
-  const locationOptions = useMemo(() => {
-    return {
-      provinces: getProvinceOptions(),
-      cities: getCityOptions(filters.province),
-      regions: getRegionOptions(filters.province, filters.city),
+  useEffect(() => {
+    let active = true;
+
+    fetchPlaceCities()
+      .then((provinces) => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          provinces: provinces.length ? provinces : getProvinceOptions(),
+        }));
+      })
+      .catch(() => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          provinces: getProvinceOptions(),
+        }));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (filters.province === "all") {
+      setApiLocationOptions((current) => ({
+        ...current,
+        cities: [],
+        regions: [],
+      }));
+      return () => {
+        active = false;
+      };
+    }
+
+    fetchPlaceDistricts(filters.province)
+      .then((cities) => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          cities: cities.length ? cities : getCityOptions(filters.province),
+          regions: [],
+        }));
+      })
+      .catch(() => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          cities: getCityOptions(filters.province),
+          regions: [],
+        }));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [filters.province]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (filters.province === "all" || filters.city === "all") {
+      setApiLocationOptions((current) => ({
+        ...current,
+        regions: [],
+      }));
+      return () => {
+        active = false;
+      };
+    }
+
+    fetchPlaceNeighborhoods(filters.province, filters.city)
+      .then((regions) => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          regions: regions.length
+            ? regions
+            : getRegionOptions(filters.province, filters.city),
+        }));
+      })
+      .catch(() => {
+        if (!active) return;
+        setApiLocationOptions((current) => ({
+          ...current,
+          regions: getRegionOptions(filters.province, filters.city),
+        }));
+      });
+
+    return () => {
+      active = false;
     };
   }, [filters.city, filters.province]);
+
+  const locationOptions = useMemo(
+    () => ({
+      provinces: apiLocationOptions.provinces,
+      cities:
+        filters.province === "all"
+          ? []
+          : apiLocationOptions.cities.length
+            ? apiLocationOptions.cities
+            : getCityOptions(filters.province),
+      regions:
+        filters.province === "all" || filters.city === "all"
+          ? []
+          : apiLocationOptions.regions.length
+            ? apiLocationOptions.regions
+            : getRegionOptions(filters.province, filters.city),
+    }),
+    [
+      apiLocationOptions.cities,
+      apiLocationOptions.provinces,
+      apiLocationOptions.regions,
+      filters.city,
+      filters.province,
+    ],
+  );
 
   const filteredCafes = cafeSpaces.filter((cafe) => {
     const location = getCafeLocation(cafe);
