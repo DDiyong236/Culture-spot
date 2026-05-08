@@ -1,4 +1,8 @@
 package com.culture.backend.domain.user.entity
 
-class Role {
+enum class Role {
+    CONSUMER,
+    CREATOR,
+    PROVIDER,
+    ADMIN
 }
