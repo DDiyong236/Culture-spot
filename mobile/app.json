@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Local Stage",
+    "slug": "local-stage-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.localstage.mobile"
+    },
+    "android": {
+      "package": "com.localstage.mobile"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
