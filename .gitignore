@@ -23,21 +23,31 @@ backend/src/main/resources/application-*.yaml
 backend/src/main/resources/application-*.properties
 backend/help.md
 
-### Frontend (React / Node.js) ###
+### Frontend (Next.js / Node.js) ###
 frontend/node_modules/
+frontend/.next/
+frontend/out/
 frontend/dist/
 frontend/build/
+frontend/tsconfig.tsbuildinfo
 frontend/.env
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
-
-# npm/yarn log files
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 frontend/.eslintcache
+
+# Local generated leftovers from before the frontend move
+node_modules/
+.next/
+out/
+tsconfig.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 ### General ###
 *.log
