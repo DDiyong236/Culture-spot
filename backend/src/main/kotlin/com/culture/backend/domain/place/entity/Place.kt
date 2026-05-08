@@ -20,7 +20,13 @@ class Place(
     var description: String,
 
     @Column(nullable = false)
-    var address: String,
+    var address1: String,
+    @Column(nullable = false)
+    var address2: String,
+    @Column(nullable = false)
+    var address3: String,
+    @Column(nullable = false)
+    var address4: String,
 
     @Column
     var openinghours: String? = null,
