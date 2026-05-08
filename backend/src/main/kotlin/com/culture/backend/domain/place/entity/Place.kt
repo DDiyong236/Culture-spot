@@ -20,12 +20,35 @@ class Place(
     var description: String,
 
     @Column(nullable = false)
-    var address: String,
-
+    var address1: String,
     @Column(nullable = false)
-    var price: Boolean,
+    var address2: String,
+    @Column(nullable = false)
+    var address3: String,
+    @Column(nullable = false)
+    var address4: String,
 
     @Column
-    var thumbnailUrl: String? = null // 장소 대표 이미지 (S3 대신 일단 샘플 URL 사용 가능)
+    var openinghours: String? = null,
+
+    @Column
+    var seatCount: Int,
+
+    @Column
+    var allowSound: String,
+
+    @Column(nullable = false)
+    var pricingType: Boolean,
+
+    @Column
+    var thumbnailUrl: String? = null,
+
+    @Column
+    var spaceUrl: String? = null,
+
+    @ElementCollection
+    @CollectionTable(name = "place_event_types", joinColumns = [JoinColumn(name = "place_id")])
+    var preferedEventTypes: MutableList<String> = mutableListOf()
+
 
 ) : BaseTimeEntity()

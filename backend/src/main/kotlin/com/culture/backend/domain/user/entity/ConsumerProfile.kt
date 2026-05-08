@@ -1,6 +1,6 @@
 package com.culture.backend.domain.user.entity
 
-import com.example.rental.global.common.BaseTimeEntity
+import com.culture.backend.global.common.BaseTimeEntity
 import jakarta.persistence.*
 
 @Entity
