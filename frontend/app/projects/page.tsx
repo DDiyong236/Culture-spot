@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { ArrowRight, CalendarClock, MapPin, Music2, Users, Wallet } from "lucide-react";
+import { CalendarClock, MapPin, Users, Wallet } from "lucide-react";
 import { creators } from "@/data/mock";
 import { eventTypeLabel, formatCurrency } from "@/lib/utils";
+import ProjectMatchAction from "@/components/ProjectMatchAction";
 
 export default function ProjectsPage() {
   return (
@@ -78,14 +78,7 @@ export default function ProjectsPage() {
                 ))}
               </div>
 
-              <Link
-                href="/cafes/register"
-                className="focus-ring mt-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
-              >
-                <Music2 size={16} aria-hidden="true" />
-                우리 카페와 맞춰보기
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
+              <ProjectMatchAction project={creator} />
             </article>
           ))}
         </div>

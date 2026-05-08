@@ -7,18 +7,7 @@ import { cafeSpaces } from "@/data/mock";
 import { rankCafeMatches } from "@/lib/matching";
 import CafeCard from "@/components/CafeCard";
 import { eventTypeLabel } from "@/lib/utils";
-
-const conditionOptions = [
-  "벽면 공간",
-  "코너 공간",
-  "프로젝터",
-  "전시 벽",
-  "스피커",
-  "마이크",
-  "조명",
-  "조용한 분위기",
-  "소음 허용",
-];
+import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 
 const timeOptions = [
   "평일 오전",
@@ -31,18 +20,51 @@ const timeOptions = [
   "일요일 오후",
 ];
 
-const STORAGE_KEY = "local-stage-group-cards";
+const regionOptions = [
+  "연남",
+  "망원",
+  "성수",
+  "해방촌",
+  "익선",
+  "을지로",
+  "신촌",
+  "경리단",
+];
+
+const genreOptionsByEventType: Record<EventType, string[]> = {
+  performance: ["락", "어쿠스틱", "발라드", "재즈", "힙합"],
+  exhibition: ["그림", "사진", "물품", "마술", "일러스트"],
+  "pop-up": ["굿즈", "플리마켓", "워크숍", "공예", "브랜드 팝업"],
+};
+
+const defaultConditionsByEventType: Record<EventType, string[]> = {
+  performance: ["코너 공간", "스피커", "소음 허용"],
+  exhibition: ["벽면 공간", "조명"],
+  "pop-up": ["코너 공간", "조명"],
+};
+
+const defaultAudienceByEventType: Record<EventType, number> = {
+  performance: 24,
+  exhibition: 18,
+  "pop-up": 20,
+};
+
+const defaultBudgetByEventType: Record<EventType, number> = {
+  performance: 60000,
+  exhibition: 40000,
+  "pop-up": 30000,
+};
 
 const defaultGroupForm: CreatorProject = {
   id: "draft-group",
   name: "",
-  genre: "어쿠스틱",
+  genre: "락",
   projectTitle: "",
   eventType: "performance",
-  requiredConditions: ["코너 공간", "스피커"],
-  expectedAudience: 20,
+  requiredConditions: defaultConditionsByEventType.performance,
+  expectedAudience: defaultAudienceByEventType.performance,
   preferredRegion: "연남",
-  budget: 40000,
+  budget: defaultBudgetByEventType.performance,
   preferredTime: "평일 저녁",
   introduction: "",
   portfolioUrl: "",
@@ -54,10 +76,15 @@ export default function CreatorForm() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [results, setResults] = useState<MatchingResult[]>([]);
+  const genreOptions = genreOptionsByEventType[form.eventType].includes(
+    form.genre,
+  )
+    ? genreOptionsByEventType[form.eventType]
+    : [form.genre, ...genreOptionsByEventType[form.eventType]].filter(Boolean);
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(GROUP_CARD_STORAGE_KEY);
       if (raw) setGroupCards(JSON.parse(raw) as CreatorProject[]);
     } catch {
       setGroupCards([]);
@@ -68,7 +95,10 @@ export default function CreatorForm() {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(groupCards));
+    window.localStorage.setItem(
+      GROUP_CARD_STORAGE_KEY,
+      JSON.stringify(groupCards),
+    );
   }, [groupCards, hydrated]);
 
   function update<K extends keyof CreatorProject>(
@@ -78,14 +108,15 @@ export default function CreatorForm() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function toggleCondition(condition: string) {
-    const exists = form.requiredConditions.includes(condition);
-    update(
-      "requiredConditions",
-      exists
-        ? form.requiredConditions.filter((item) => item !== condition)
-        : [...form.requiredConditions, condition],
-    );
+  function updateEventType(eventType: EventType) {
+    setForm((current) => ({
+      ...current,
+      eventType,
+      genre: genreOptionsByEventType[eventType][0],
+      requiredConditions: defaultConditionsByEventType[eventType],
+      expectedAudience: defaultAudienceByEventType[eventType],
+      budget: defaultBudgetByEventType[eventType],
+    }));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -145,13 +176,18 @@ export default function CreatorForm() {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="label">현재 장르/셋</span>
-            <input
+            <span className="label">이벤트 유형</span>
+            <select
               className="form-field"
-              value={form.genre}
-              onChange={(event) => update("genre", event.target.value)}
-              placeholder="어쿠스틱, 락, 사진, 일러스트"
-            />
+              value={form.eventType}
+              onChange={(event) =>
+                updateEventType(event.target.value as EventType)
+              }
+            >
+              <option value="performance">공연</option>
+              <option value="exhibition">전시</option>
+              <option value="pop-up">팝업</option>
+            </select>
           </label>
           <label className="space-y-1.5 sm:col-span-2">
             <span className="label">프로젝트 제목</span>
@@ -163,50 +199,32 @@ export default function CreatorForm() {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="label">희망 지역</span>
-            <input
-              className="form-field"
-              value={form.preferredRegion}
-              onChange={(event) => update("preferredRegion", event.target.value)}
-              placeholder="연남"
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="label">이벤트 유형</span>
+            <span className="label">장르</span>
             <select
               className="form-field"
-              value={form.eventType}
-              onChange={(event) =>
-                update("eventType", event.target.value as EventType)
-              }
+              value={form.genre}
+              onChange={(event) => update("genre", event.target.value)}
             >
-              <option value="exhibition">전시</option>
-              <option value="performance">공연</option>
-              <option value="pop-up">팝업</option>
+              {genreOptions.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
             </select>
           </label>
           <label className="space-y-1.5">
-            <span className="label">예상 관객 수</span>
-            <input
+            <span className="label">희망 지역</span>
+            <select
               className="form-field"
-              type="number"
-              min="1"
-              value={form.expectedAudience}
-              onChange={(event) =>
-                update("expectedAudience", Number(event.target.value))
-              }
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="label">예산</span>
-            <input
-              className="form-field"
-              type="number"
-              min="0"
-              step="5000"
-              value={form.budget}
-              onChange={(event) => update("budget", Number(event.target.value))}
-            />
+              value={form.preferredRegion}
+              onChange={(event) => update("preferredRegion", event.target.value)}
+            >
+              {regionOptions.map((region) => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="space-y-1.5 sm:col-span-2 lg:col-span-1">
             <span className="label">희망 시간대</span>
@@ -222,30 +240,7 @@ export default function CreatorForm() {
               ))}
             </select>
           </label>
-        </div>
-
-        <div className="mt-4 grid gap-4 lg:grid-cols-[0.62fr_0.38fr]">
-          <fieldset>
-            <legend className="label">필요한 공간 조건</legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {conditionOptions.map((condition) => (
-                <label
-                  key={condition}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-background px-3 py-2 text-sm font-medium text-primary"
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.requiredConditions.includes(condition)}
-                    onChange={() => toggleCondition(condition)}
-                    className="size-4 rounded border-line accent-accent"
-                  />
-                  {condition}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="space-y-1.5">
+          <label className="space-y-1.5 sm:col-span-2">
             <span className="label">포트폴리오 URL</span>
             <input
               className="form-field"
@@ -334,7 +329,6 @@ export default function CreatorForm() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="badge">{card.preferredRegion}</span>
                   <span className="badge">{card.preferredTime}</span>
-                  <span className="badge">예상 {card.expectedAudience}명</span>
                 </div>
                 <button
                   type="button"
@@ -365,60 +359,6 @@ export default function CreatorForm() {
       <section className="space-y-5">
         {results.length ? (
           <>
-            <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
-              <p className="text-sm font-semibold text-accent">
-                그룹 카드 미리보기
-              </p>
-              <div className="mt-4 grid gap-4 lg:grid-cols-[0.36fr_0.64fr]">
-                <div className="rounded-lg border border-line bg-background p-4">
-                  <p className="text-sm font-semibold text-primary/70">
-                    그룹
-                  </p>
-                  <h2 className="mt-2 text-2xl font-bold text-ink">
-                    {form.name || "새로운 그룹"}
-                  </h2>
-                  <p className="mt-2 text-sm text-ink/68">
-                    {form.genre} · {eventTypeLabel(form.eventType)}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="badge">{form.preferredRegion}</span>
-                    <span className="badge">{form.preferredTime}</span>
-                    <span className="badge">예상 {form.expectedAudience}명</span>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-line bg-background p-4">
-                  <p className="text-sm font-semibold text-primary/70">
-                    프로젝트
-                  </p>
-                  <h3 className="mt-2 text-xl font-bold text-ink">
-                    {form.projectTitle || "프로젝트 제목 미입력"}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-ink/70">
-                    {form.introduction ||
-                      "프로젝트 소개를 입력하면 이 영역에 그룹 카드 설명이 표시됩니다."}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {form.requiredConditions.map((condition) => (
-                      <span key={condition} className="badge">
-                        {condition}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between gap-3 rounded-lg border border-line bg-white p-5 shadow-soft sm:flex-row sm:items-end">
-              <div>
-                <p className="text-sm font-semibold text-accent">추천 공간</p>
-                <h2 className="mt-1 text-2xl font-bold text-ink">
-                  이 그룹 프로젝트에 어울리는 카페 공간
-                </h2>
-              </div>
-              <p className="text-sm font-semibold text-primary">
-                추천 {results.length}곳
-              </p>
-            </div>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {results.map((result) => (
                 <CafeCard
@@ -440,8 +380,8 @@ export default function CreatorForm() {
               그룹 정보를 입력하면 등록 카드가 저장됩니다.
             </h2>
             <p className="mt-3 text-sm leading-6 text-ink/70">
-              저장 후 그룹 카드와 함께 지역, 공간 조건, 시간대, 예산,
-              관객 규모에 맞는 추천 카페를 그리드로 확인할 수 있습니다.
+              저장 후 그룹 카드와 함께 이벤트 유형, 장르, 지역, 시간대에 맞는
+              추천 카페를 그리드로 확인할 수 있습니다.
             </p>
           </div>
         )}

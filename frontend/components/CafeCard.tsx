@@ -122,7 +122,7 @@ export default function CafeCard({
         ) : null}
 
         <div className="mt-auto">
-          <CafeCardAction />
+          <CafeCardAction cafe={cafe} />
         </div>
       </div>
     </article>

@@ -11,6 +11,7 @@ import type {
 } from "@/types";
 import CafeCard from "@/components/CafeCard";
 import { equipmentLabel, eventTypeLabel } from "@/lib/utils";
+import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 
 const equipmentOptions: Equipment[] = [
   "Speaker",
@@ -116,8 +117,8 @@ export default function CafeRegisterForm() {
     const allowsPerformance =
       availableTypes.includes("performance") && form.noiseTolerance !== "low";
 
-    setPreview({
-      id: "preview-cafe",
+    const savedCafe: CafeSpace = {
+      id: `registered-cafe-${Date.now()}`,
       name: form.name || "새로운 동네 카페",
       region: "등록 예정",
       address: form.address || "주소 입력 예정",
@@ -145,7 +146,23 @@ export default function CafeRegisterForm() {
         form.spaceImage ||
         "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80",
       utilizationRate: 0,
-    });
+    };
+
+    setPreview(savedCafe);
+
+    try {
+      const raw = window.localStorage.getItem(CAFE_CARD_STORAGE_KEY);
+      const cafes = raw ? (JSON.parse(raw) as CafeSpace[]) : [];
+      window.localStorage.setItem(
+        CAFE_CARD_STORAGE_KEY,
+        JSON.stringify([savedCafe, ...cafes]),
+      );
+    } catch {
+      window.localStorage.setItem(
+        CAFE_CARD_STORAGE_KEY,
+        JSON.stringify([savedCafe]),
+      );
+    }
   }
 
   return (
