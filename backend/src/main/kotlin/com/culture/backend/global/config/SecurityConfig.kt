@@ -3,6 +3,7 @@ package com.culture.backend.global.config
 import com.culture.backend.global.filter.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -32,7 +33,9 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/api/auth/**").permitAll() // 로그인, 회원가입 허용
-                    .requestMatchers("/api/places/**").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/places", "/api/places/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/places").hasRole("PROVIDER")
                     .requestMatchers("/projects/**").permitAll()
                     .anyRequest().authenticated()
             }

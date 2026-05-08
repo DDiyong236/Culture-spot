@@ -4,6 +4,7 @@ import com.culture.backend.domain.place.dto.PlaceRequest
 import com.culture.backend.domain.place.dto.PlaceResponse
 import com.culture.backend.domain.place.service.PlaceService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -45,8 +46,9 @@ class PlaceController(
         return ResponseEntity.ok(placeService.getAvailableNeighborhoods(city, district))
     }
     @PostMapping
-    fun registerPlace(@RequestBody request: PlaceRequest,
-    @RequestParam userId: Long
+    fun registerPlace(
+        @RequestBody request: PlaceRequest,
+        @AuthenticationPrincipal userId: Long
     ): ResponseEntity<Long> {
         val placeId = placeService.registerPlace(request, userId)
         return ResponseEntity.ok(placeId)

@@ -4,6 +4,7 @@ import com.culture.backend.domain.place.dto.PlaceRequest
 import com.culture.backend.domain.place.dto.PlaceResponse
 import com.culture.backend.domain.place.entity.Place
 import com.culture.backend.domain.place.repository.PlaceRepository
+import com.culture.backend.domain.user.entity.Role
 import com.culture.backend.domain.user.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,10 +42,19 @@ class PlaceService(
     fun getAvailableNeighborhoods(city: String, district: String): List<String> {
         return placeRepository.findDistinctAddress3(city, district)
     }
+    @Transactional
     fun registerPlace(request: PlaceRequest, userId: Long): Long {
 
         val provider = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException("${userId}번 유저를 찾을 수 없습니다") }
+
+        if (provider.role != Role.PROVIDER) {
+            throw IllegalArgumentException("사장님 계정만 공간을 등록할 수 있습니다")
+        }
+
+        val eventTypes = request.preferedEventTypes.ifEmpty {
+            request.preferredEventTypes
+        }
 
         val place = Place(
             provider = provider,
@@ -60,7 +70,7 @@ class PlaceService(
             pricingType = request.pricingType,
             thumbnailUrl = request.thumbnailUrl,
             spaceUrl = request.spaceUrl,
-            preferedEventTypes = request.preferedEventTypes.toMutableList()
+            preferedEventTypes = eventTypes.toMutableList()
         )
         return placeRepository.save(place).id!!
     }

@@ -40,10 +40,10 @@ class Place(
     @Column(nullable = false)
     var pricingType: Boolean,
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     var thumbnailUrl: String? = null,
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     var spaceUrl: String? = null,
 
     @ElementCollection

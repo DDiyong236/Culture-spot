@@ -13,5 +13,6 @@ data class PlaceRequest(
     val pricingType: Boolean,
     val thumbnailUrl: String?,
     val spaceUrl: String?,
-    val preferedEventTypes: List<String> = emptyList()
+    val preferedEventTypes: List<String> = emptyList(),
+    val preferredEventTypes: List<String> = emptyList()
 )

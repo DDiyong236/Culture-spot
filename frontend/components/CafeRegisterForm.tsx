@@ -15,6 +15,7 @@ import {
   getProvinceOptions,
   getRegionOptions,
 } from "@/lib/locations";
+import { registerPlace } from "@/lib/placeApi";
 import { eventTypeLabel } from "@/lib/utils";
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 
@@ -87,6 +88,8 @@ function readImageFile(file: File) {
 
 export default function CafeRegisterForm() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState<CafeFormState>({
     name: "",
     province: "",
@@ -166,8 +169,9 @@ export default function CafeRegisterForm() {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitError("");
     const address = buildAddress(form);
     const availableTypes = form.preferredEventTypes.length
       ? form.preferredEventTypes
@@ -182,52 +186,81 @@ export default function CafeRegisterForm() {
       ? form.spaceImages
       : [fallbackSpaceImage];
 
-    const savedCafe: CafeSpace = {
-      id: `registered-cafe-${Date.now()}`,
-      name: form.name || "새로운 동네 장소",
-      region: form.neighborhood || form.city || "등록 예정",
-      address: address || "주소 입력 예정",
-      description:
-        form.description ||
-        "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 소상공인 공간입니다.",
-      availableTypes,
-      capacity: Math.max(6, Math.min(form.seats, 24)),
-      seats: form.seats,
-      operatingHours: form.operatingHours,
-      availableTimeSlots: [
-        form.operatingHours ? `${form.operatingHours} 중 협의` : "운영 중 협의",
-      ],
-      hasWallSpace,
-      hasCornerSpace,
-      allowsPerformance,
-      noiseTolerance: form.noiseTolerance,
-      equipment: form.equipment,
-      priceType: form.priceType,
-      pricePerHour: form.priceType === "paid" ? form.pricePerHour : 0,
-      atmosphere:
-        form.noiseTolerance === "low"
-          ? "조용하고 매장 본연의 분위기를 살린 갤러리형 공간"
-          : "따뜻하고 유연한 커뮤니티형 공간",
-      image: spaceImages[0],
-      images: spaceImages,
-      utilizationRate: 0,
-    };
-
     try {
-      const raw = window.localStorage.getItem(CAFE_CARD_STORAGE_KEY);
-      const cafes = raw ? (JSON.parse(raw) as CafeSpace[]) : [];
-      window.localStorage.setItem(
-        CAFE_CARD_STORAGE_KEY,
-        JSON.stringify([savedCafe, ...cafes]),
-      );
-    } catch {
-      window.localStorage.setItem(
-        CAFE_CARD_STORAGE_KEY,
-        JSON.stringify([savedCafe]),
-      );
-    }
+      setIsSubmitting(true);
+      const description =
+        form.description ||
+        "평소 영업을 유지하면서 쓰이지 않던 공간에 작은 문화의 층을 더하는 동네 소상공인 공간입니다.";
+      const placeId = await registerPlace({
+        title: form.name || "새로운 동네 장소",
+        description,
+        address1: form.province || "미입력",
+        address2: form.city || "미입력",
+        address3: form.neighborhood || "미입력",
+        address4: form.detailAddress.trim() || "상세주소 미입력",
+        openinghours: form.operatingHours || null,
+        seatCount: Math.max(1, form.seats),
+        allowSound: form.noiseTolerance,
+        pricingType: form.priceType === "paid",
+        thumbnailUrl: spaceImages[0] ?? null,
+        spaceUrl: JSON.stringify(spaceImages),
+        preferedEventTypes: availableTypes,
+      });
 
-    router.push("/dashboard");
+      const savedCafe: CafeSpace = {
+        id: `backend-place-${placeId}`,
+        name: form.name || "새로운 동네 장소",
+        region: form.neighborhood || form.city || "등록 예정",
+        address: address || "주소 입력 예정",
+        description,
+        availableTypes,
+        capacity: Math.max(6, Math.min(form.seats, 24)),
+        seats: form.seats,
+        operatingHours: form.operatingHours,
+        availableTimeSlots: [
+          form.operatingHours ? `${form.operatingHours} 중 협의` : "운영 중 협의",
+        ],
+        hasWallSpace,
+        hasCornerSpace,
+        allowsPerformance,
+        noiseTolerance: form.noiseTolerance,
+        equipment: form.equipment,
+        priceType: form.priceType,
+        pricePerHour: form.priceType === "paid" ? form.pricePerHour : 0,
+        atmosphere:
+          form.noiseTolerance === "low"
+            ? "조용하고 매장 본연의 분위기를 살린 갤러리형 공간"
+            : "따뜻하고 유연한 커뮤니티형 공간",
+        image: spaceImages[0],
+        images: spaceImages,
+        utilizationRate: 0,
+      };
+
+      try {
+        const raw = window.localStorage.getItem(CAFE_CARD_STORAGE_KEY);
+        const cafes = raw ? (JSON.parse(raw) as CafeSpace[]) : [];
+        window.localStorage.setItem(
+          CAFE_CARD_STORAGE_KEY,
+          JSON.stringify([savedCafe, ...cafes]),
+        );
+      } catch {
+        window.localStorage.setItem(
+          CAFE_CARD_STORAGE_KEY,
+          JSON.stringify([savedCafe]),
+        );
+      }
+
+      router.push("/dashboard");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "공간 등록 중 문제가 발생했습니다.",
+      );
+      return;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -582,11 +615,17 @@ export default function CafeRegisterForm() {
 
         <button
           type="submit"
-          className="focus-ring mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
+          disabled={isSubmitting}
+          className="focus-ring mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/55"
         >
           <Store size={18} aria-hidden="true" />
-          바로 등록하기
+          {isSubmitting ? "등록 중..." : "바로 등록하기"}
         </button>
+        {submitError ? (
+          <p className="mt-3 rounded-lg border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-semibold text-primary">
+            {submitError}
+          </p>
+        ) : null}
       </form>
     </div>
   );

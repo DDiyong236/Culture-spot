@@ -12,8 +12,10 @@ data class PlaceResponse(
     val openinghours: String?,
     val allowSound: String?,
     val thumbnailUrl: String?,
+    val spaceUrl: String?,
     val description: String?,
-    val preferedEventTypes: List<String>?
+    val preferedEventTypes: List<String>?,
+    val pricingType: Boolean
 ){
     companion object {
         fun from(place: Place): PlaceResponse {
@@ -28,8 +30,10 @@ data class PlaceResponse(
                 openinghours = place.openinghours,
                 allowSound = place.allowSound,
                 thumbnailUrl = place.thumbnailUrl,
+                spaceUrl = place.spaceUrl,
                 description = place.description,
-                preferedEventTypes = place.preferedEventTypes
+                preferedEventTypes = place.preferedEventTypes,
+                pricingType = place.pricingType
             )
         }
     }

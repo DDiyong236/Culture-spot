@@ -1,4 +1,5 @@
 import type { CafeSpace, Equipment, EventType, NoiseTolerance } from "@/types";
+import { authFetch } from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
@@ -13,9 +14,26 @@ export type BackendPlaceResponse = {
   openinghours?: string | null;
   allowSound?: string | null;
   thumbnailUrl?: string | null;
+  spaceUrl?: string | null;
   description?: string | null;
   preferedEventTypes?: string[] | null;
   pricingType?: boolean | null;
+};
+
+export type BackendPlaceRequest = {
+  title: string;
+  description: string;
+  address1: string;
+  address2: string;
+  address3: string;
+  address4: string;
+  openinghours?: string | null;
+  seatCount: number;
+  allowSound: string;
+  pricingType: boolean;
+  thumbnailUrl?: string | null;
+  spaceUrl?: string | null;
+  preferedEventTypes: string[];
 };
 
 function apiUrl(path: string, params?: Record<string, string>) {
@@ -173,6 +191,23 @@ function fallbackImage(eventTypes: EventType[]) {
   return "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=900&q=80";
 }
 
+function parseSpaceImages(spaceUrl?: string | null) {
+  if (!spaceUrl) return [];
+
+  try {
+    const parsed = JSON.parse(spaceUrl) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter(
+        (value): value is string => typeof value === "string" && Boolean(value),
+      );
+    }
+  } catch {
+    return [spaceUrl].filter(Boolean);
+  }
+
+  return [];
+}
+
 export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
   const id = `backend-place-${place.id ?? place.title}`;
   const eventTypes = normalizeEventTypes(place.preferedEventTypes);
@@ -188,7 +223,14 @@ export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
     eventTypes.includes("pop-up") ||
     includesAny(description, ["코너", "선반", "진열", "팝업"]);
 
-  const image = place.thumbnailUrl || fallbackImage(eventTypes);
+  const images = Array.from(
+    new Set([
+      place.thumbnailUrl,
+      ...parseSpaceImages(place.spaceUrl),
+      fallbackImage(eventTypes),
+    ].filter(Boolean)),
+  ) as string[];
+  const image = images[0];
 
   return {
     id,
@@ -218,7 +260,7 @@ export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
         ? "조용한 카페 운영형 문화 공간"
         : "유연하게 협업 가능한 카페 문화 공간",
     image,
-    images: [image],
+    images,
     utilizationRate: stableUtilization(id),
   };
 }
@@ -243,4 +285,21 @@ export async function fetchPlaces(filters?: {
 
   const places = (await response.json()) as BackendPlaceResponse[];
   return places.map(adaptBackendPlace);
+}
+
+export async function registerPlace(request: BackendPlaceRequest) {
+  const response = await authFetch(apiUrl("/api/places"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Failed to register place: ${response.status}`);
+  }
+
+  return (await response.json()) as number;
 }
