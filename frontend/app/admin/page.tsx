@@ -51,20 +51,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold text-accent">
-            간단 관리자 대시보드
-          </p>
-          <h1 className="mt-2 text-4xl font-bold text-ink">
-            동네 카페 위에 쌓이는 문화 레이어를 확인하세요.
-          </h1>
-          <p className="mt-4 text-base leading-7 text-ink/72">
-            목 통계로 등록 카페, 아티스트, 예정 이벤트, 활용률, 최근 매칭
-            요청을 확인할 수 있습니다.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label="등록 카페"
             value={cafeSpaces.length}

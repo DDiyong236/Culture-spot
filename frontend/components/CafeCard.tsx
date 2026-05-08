@@ -1,10 +1,8 @@
 import Link from "next/link";
 import {
   BadgeCheck,
-  CalendarClock,
   Clock,
   MapPin,
-  Projector,
   Users,
   Volume2,
 } from "lucide-react";
@@ -13,7 +11,6 @@ import CafeCardAction from "@/components/CafeCardAction";
 import CafeLikeCount from "@/components/CafeLikeCount";
 import {
   cafeSizeLabel,
-  equipmentLabel,
   eventTypeLabel,
   formatOpeningHours,
   noiseLabel,
@@ -37,7 +34,7 @@ export default function CafeCard({
 }: CafeCardProps) {
   const features = [cafe.atmosphere, cafeSizeLabel(cafe)];
   const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-0";
-  const detailHeight = compact ? "min-h-[4.5rem]" : "min-h-[5rem]";
+  const detailHeight = compact ? "min-h-[3.25rem]" : "min-h-0";
   const featureHeight = compact ? "min-h-[4.25rem]" : "min-h-0";
 
   return (
@@ -95,20 +92,12 @@ export default function CafeCard({
             오픈 {formatOpeningHours(cafe)}
           </p>
           <p className="flex items-center gap-2">
-            <Users size={16} className="text-sage" aria-hidden="true" />
-            수용 {cafe.capacity}명
-          </p>
-          <p className="flex items-center gap-2">
-            <CalendarClock size={16} className="text-sage" aria-hidden="true" />
-            {cafe.availableTimeSlots.join(", ")}
-          </p>
-          <p className="flex items-center gap-2">
-            <Projector size={16} className="text-sage" aria-hidden="true" />
-            {cafe.equipment.map(equipmentLabel).join(", ")}
-          </p>
-          <p className="flex items-center gap-2">
             <Volume2 size={16} className="text-sage" aria-hidden="true" />
             소음 허용 {noiseLabel(cafe.noiseTolerance)}
+          </p>
+          <p className="flex items-center gap-2">
+            <Users size={16} className="text-sage" aria-hidden="true" />
+            수용 {cafe.capacity}명
           </p>
         </div>
 

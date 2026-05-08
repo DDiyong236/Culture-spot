@@ -69,7 +69,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-line bg-background/92 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex shrink-0 items-center gap-3">
-          <Link href="/" className="flex shrink-0 items-center gap-2 text-primary">
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-ink">
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-white shadow-soft">
               <Coffee size={19} aria-hidden="true" />
             </span>
@@ -77,7 +77,7 @@ export default function Header() {
               <span className="block text-base font-bold leading-tight">
                 Local Stage
               </span>
-              <span className="block text-xs text-primary/70">
+              <span className="block text-xs text-ink/62">
                 카페 속 작은 문화 무대
               </span>
             </span>
@@ -101,7 +101,7 @@ export default function Header() {
                   className={cn(
                     "focus-ring inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-sm font-medium transition",
                     active
-                      ? "border-accent bg-white font-bold text-primary shadow-[0_0_0_3px_rgba(217,154,61,0.18)]"
+                      ? "border-accent bg-white font-bold text-primary shadow-[0_0_0_3px_rgba(243,115,56,0.18)]"
                       : "border-transparent text-primary/80 hover:bg-white hover:text-primary",
                   )}
                 >

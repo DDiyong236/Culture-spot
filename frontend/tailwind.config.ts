@@ -10,17 +10,17 @@ const config: Config = {
     extend: {
       colors: {
         background: "#FAF7F0",
-        primary: "#6B4F3F",
-        accent: "#D99A3D",
+        primary: "#F37338",
+        accent: "#F37338",
         ink: "#2F2F2F",
         sage: "#7A8C6A",
         card: "#FFFFFF",
         line: "#E5DED4",
-        clay: "#B9785F",
+        clay: "#F37338",
         mist: "#ECE7DD",
       },
       boxShadow: {
-        warm: "0 14px 40px rgba(107, 79, 63, 0.10)",
+        warm: "0 14px 40px rgba(243, 115, 56, 0.14)",
         soft: "0 8px 24px rgba(47, 47, 47, 0.08)",
       },
       fontFamily: {

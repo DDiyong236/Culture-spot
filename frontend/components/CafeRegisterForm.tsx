@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { ImagePlus, Store } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type {
   CafeSpace,
   Equipment,
@@ -9,22 +10,13 @@ import type {
   NoiseTolerance,
   PriceType,
 } from "@/types";
-import CafeCard from "@/components/CafeCard";
 import {
   getCityOptions,
   getProvinceOptions,
   getRegionOptions,
 } from "@/lib/locations";
-import { equipmentLabel, eventTypeLabel } from "@/lib/utils";
+import { eventTypeLabel } from "@/lib/utils";
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
-
-const equipmentOptions: Equipment[] = [
-  "Speaker",
-  "Microphone",
-  "Projector",
-  "Display wall",
-  "Lighting",
-];
 
 const eventOptions: EventType[] = [
   "exhibition",
@@ -82,6 +74,7 @@ function recommendEventTypes(form: CafeFormState) {
 }
 
 export default function CafeRegisterForm() {
+  const router = useRouter();
   const [form, setForm] = useState<CafeFormState>({
     name: "",
     province: "",
@@ -98,9 +91,7 @@ export default function CafeRegisterForm() {
     spaceImage: "",
     description: "",
   });
-  const [preview, setPreview] = useState<CafeSpace | null>(null);
 
-  const recommendedTypes = useMemo(() => recommendEventTypes(form), [form]);
   const cityOptions = useMemo(
     () => (form.province ? getCityOptions(form.province) : []),
     [form.province],
@@ -120,16 +111,6 @@ export default function CafeRegisterForm() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function toggleEquipment(item: Equipment) {
-    const exists = form.equipment.includes(item);
-    update(
-      "equipment",
-      exists
-        ? form.equipment.filter((equipment) => equipment !== item)
-        : [...form.equipment, item],
-    );
-  }
-
   function toggleEventType(type: EventType) {
     const exists = form.preferredEventTypes.includes(type);
     update(
@@ -145,7 +126,7 @@ export default function CafeRegisterForm() {
     const address = buildAddress(form);
     const availableTypes = form.preferredEventTypes.length
       ? form.preferredEventTypes
-      : recommendedTypes;
+      : recommendEventTypes(form);
     const hasWallSpace =
       availableTypes.includes("exhibition") ||
       form.equipment.includes("Display wall");
@@ -185,8 +166,6 @@ export default function CafeRegisterForm() {
       utilizationRate: 0,
     };
 
-    setPreview(savedCafe);
-
     try {
       const raw = window.localStorage.getItem(CAFE_CARD_STORAGE_KEY);
       const cafes = raw ? (JSON.parse(raw) as CafeSpace[]) : [];
@@ -200,6 +179,8 @@ export default function CafeRegisterForm() {
         JSON.stringify([savedCafe]),
       );
     }
+
+    router.push("/dashboard");
   }
 
   return (
@@ -373,7 +354,7 @@ export default function CafeRegisterForm() {
                   form.spaceImage ||
                   "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=900&q=80"
                 }
-                alt="등록할 카페 공간 미리보기"
+                alt="등록할 카페 공간 사진"
                 className="h-44 w-full object-cover"
               />
             </div>
@@ -406,26 +387,6 @@ export default function CafeRegisterForm() {
             </div>
           </div>
         </label>
-
-        <fieldset className="mt-4">
-          <legend className="label">사용 가능한 장비</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {equipmentOptions.map((equipment) => (
-              <label
-                key={equipment}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-background px-3 py-2 text-sm font-medium text-primary"
-              >
-                <input
-                  type="checkbox"
-                  checked={form.equipment.includes(equipment)}
-                  onChange={() => toggleEquipment(equipment)}
-                  className="size-4 rounded border-line accent-accent"
-                />
-                {equipmentLabel(equipment)}
-              </label>
-            ))}
-          </div>
-        </fieldset>
 
         <fieldset className="mt-4">
           <legend className="label">희망 이벤트 유형</legend>
@@ -462,45 +423,9 @@ export default function CafeRegisterForm() {
           className="focus-ring mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
         >
           <Store size={18} aria-hidden="true" />
-          등록될 카페 공간 미리보기
+          바로 등록하기
         </button>
       </form>
-
-      <section className="space-y-4">
-        <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-accent">추천 적합도</p>
-          <h2 className="mt-1 text-2xl font-bold text-ink">
-            이 카페에 어울리는 이벤트 유형
-          </h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {recommendedTypes.map((type) => (
-              <span key={type} className="badge">
-                {eventTypeLabel(type)}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {preview ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            <CafeCard
-              cafe={preview}
-              reason="이 미리보기는 아티스트에게 보일 카페 공간 카드입니다. 매칭은 카페의 평소 영업을 방해하지 않는 작은 문화 활용을 우선합니다."
-            />
-          </div>
-        ) : (
-          <div className="rounded-lg border border-line bg-white p-6 shadow-soft">
-            <p className="text-sm font-semibold text-accent">공간 미리보기</p>
-            <h2 className="mt-1 text-2xl font-bold text-ink">
-              폼을 제출하면 카페 등록 카드가 표시됩니다.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-ink/70">
-              공간 이미지, 장비, 어울리는 이벤트 유형을 미리 확인할 수
-              있습니다.
-            </p>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

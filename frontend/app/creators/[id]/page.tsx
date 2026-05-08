@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { cafeSpaces, creators, events } from "@/data/mock";
+import {
+  findArtistProfileByProjectId,
+  type ArtistProfile,
+} from "@/lib/artists";
 import { creatorImages } from "@/lib/creatorAssets";
 import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import { baseLikeCount, eventTypeLabel } from "@/lib/utils";
@@ -87,50 +91,52 @@ export default function CreatorDetailPage({
     isFavorite,
     toggleFavorite,
   } = useAuth();
-  const [creator, setCreator] = useState<CreatorProject | null>(null);
+  const [artist, setArtist] = useState<ArtistProfile | null>(null);
   const [ready, setReady] = useState(false);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
 
   useEffect(() => {
-    const foundCreator =
-      creators.find((item) => item.id === id) ??
-      readRegisteredCreators().find((item) => item.id === id) ??
-      null;
-    setCreator(foundCreator);
+    const foundArtist = findArtistProfileByProjectId(
+      [...readRegisteredCreators(), ...creators],
+      id,
+    );
+    setArtist(foundArtist);
     setReady(true);
   }, [id]);
 
-  const favoriteTarget = creator
-    ? { id: creator.id, type: "creator" as const, name: creator.name }
+  const creator = artist?.representativeProject ?? null;
+  const favoriteTarget = artist
+    ? { id: artist.id, type: "creator" as const, name: artist.name }
     : null;
   const favorite = hydrated && favoriteTarget ? isFavorite(favoriteTarget) : false;
   const canToggle = hydrated && user?.role === "consumer" && favoriteTarget;
-  const likeCount = creator ? baseLikeCount(creator.id) + (favorite ? 1 : 0) : 0;
+  const likeCount = artist ? baseLikeCount(artist.id) + (favorite ? 1 : 0) : 0;
   const showConsumerActions = !hydrated || !user || user.role === "consumer";
 
   const reviews = useMemo(() => {
-    if (!creator) return [];
+    if (!artist) return [];
     return [
-      ...getReviewsForTarget("creator", creator.id),
+      ...getReviewsForTarget("creator", artist.id),
       ...sampleReviews.map((review) => ({
         ...review,
-        targetId: creator.id,
-        targetName: creator.name,
+        targetId: artist.id,
+        targetName: artist.name,
       })),
     ];
-  }, [creator, getReviewsForTarget]);
+  }, [artist, getReviewsForTarget]);
 
   const scheduleItems = useMemo(() => {
-    if (!creator) return [];
+    if (!artist) return [];
+    const projectIds = new Set(artist.projects.map((project) => project.id));
 
     return events
-      .filter((event) => event.creatorId === creator.id)
+      .filter((event) => projectIds.has(event.creatorId))
       .sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
-  }, [creator]);
+  }, [artist]);
 
   async function handlePhotoChange(file?: File) {
     if (!file) {
@@ -142,12 +148,12 @@ export default function CreatorDetailPage({
 
   function handleReviewSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!creator) return;
+    if (!artist) return;
 
     addReview({
-      targetId: creator.id,
+      targetId: artist.id,
       targetType: "creator",
-      targetName: creator.name,
+      targetName: artist.name,
       rating,
       content,
       photoUrl,
@@ -169,7 +175,7 @@ export default function CreatorDetailPage({
     );
   }
 
-  if (!creator) {
+  if (!artist || !creator) {
     return (
       <div className="min-h-screen py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -203,21 +209,21 @@ export default function CreatorDetailPage({
           <div className="grid lg:grid-cols-[0.58fr_0.42fr]">
             <img
               src={creatorImages[creator.eventType]}
-              alt={`${creator.projectTitle} 프로젝트 이미지`}
+              alt={`${artist.name} 아티스트 이미지`}
               className="h-80 w-full object-cover lg:h-full"
             />
             <div className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-accent">
-                    {eventTypeLabel(creator.eventType)}
+                    프로젝트 {artist.projects.length}개
                   </p>
                   <h1 className="mt-2 text-4xl font-bold text-ink">
-                    {creator.projectTitle || "제목 없는 프로젝트"}
+                    {artist.name || "새로운 아티스트"}
                   </h1>
                   <p className="mt-3 flex items-center gap-2 text-sm text-primary/75">
                     <Sparkles size={16} aria-hidden="true" />
-                    {creator.name || "새로운 그룹"}
+                    {artist.genres.join(", ")}
                   </p>
                 </div>
                 {showConsumerActions ? (
@@ -231,7 +237,7 @@ export default function CreatorDetailPage({
                         ? "bg-accent text-white"
                         : "border border-line bg-background text-primary"
                     } ${canToggle ? "hover:border-accent" : "cursor-default"}`}
-                    aria-label={`${creator.name} 좋아요 ${likeCount}개`}
+                    aria-label={`${artist.name} 좋아요 ${likeCount}개`}
                   >
                     <Heart
                       size={16}
@@ -244,36 +250,88 @@ export default function CreatorDetailPage({
               </div>
 
               <p className="mt-5 text-base leading-7 text-ink/72">
-                {creator.introduction || "아직 프로젝트 소개가 등록되지 않았습니다."}
+                {artist.introduction || "아직 아티스트 소개가 등록되지 않았습니다."}
               </p>
 
               <div className="mt-6 grid gap-3 text-sm text-ink/74 sm:grid-cols-2">
                 <p className="flex items-center gap-2">
                   <Tag size={16} className="text-sage" aria-hidden="true" />
-                  {creator.genre}
+                  {artist.eventTypes.map(eventTypeLabel).join(", ")}
                 </p>
                 <p className="flex items-center gap-2">
                   <MapPin size={16} className="text-sage" aria-hidden="true" />
-                  {creator.preferredRegion}
+                  {artist.preferredRegions.join(", ")}
                 </p>
                 <p className="flex items-center gap-2">
                   <CalendarClock size={16} className="text-sage" aria-hidden="true" />
-                  {creator.preferredTime}
+                  {artist.preferredTimes.join(", ")}
                 </p>
                 <p className="flex items-center gap-2">
                   <LinkIcon size={16} className="text-sage" aria-hidden="true" />
-                  {creator.portfolioUrl || "포트폴리오 링크 준비 중"}
+                  {artist.portfolioUrl || "포트폴리오 링크 준비 중"}
                 </p>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                {creator.requiredConditions.map((condition) => (
-                  <span key={condition} className="badge">
-                    {condition}
+                {artist.genres.map((genre) => (
+                  <span key={genre} className="badge">
+                    {genre}
                   </span>
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-lg border border-line bg-white p-5 shadow-soft">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-accent">진행 프로젝트</p>
+              <h2 className="mt-1 text-2xl font-bold text-ink">
+                {artist.name}의 프로젝트
+              </h2>
+            </div>
+            <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
+              {artist.projects.length}개
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {artist.projects.map((project) => (
+              <article
+                key={project.id}
+                className="rounded-lg border border-line bg-background p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <span className="badge">{eventTypeLabel(project.eventType)}</span>
+                    <h3 className="mt-3 text-xl font-bold text-ink">
+                      {project.projectTitle || "제목 없는 프로젝트"}
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-primary">
+                    {project.genre}
+                  </span>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-ink/72">
+                  {project.introduction}
+                </p>
+                <div className="mt-4 grid gap-2 text-sm text-ink/72 sm:grid-cols-2">
+                  <p className="flex items-center gap-2">
+                    <MapPin size={16} className="text-sage" aria-hidden="true" />
+                    {project.preferredRegion}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CalendarClock
+                      size={16}
+                      className="text-sage"
+                      aria-hidden="true"
+                    />
+                    {project.preferredTime}
+                  </p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -358,8 +416,8 @@ export default function CreatorDetailPage({
                   아직 확정된 공개 일정이 없습니다.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink/70">
-                  {creator.name || "이 아티스트"}는 {creator.preferredRegion}에서{" "}
-                  {creator.preferredTime} 일정으로 카페 협업을 준비하고 있습니다.
+                  {artist.name || "이 아티스트"}는 {artist.preferredRegions.join(", ")}
+                  에서 카페 협업을 준비하고 있습니다.
                 </p>
               </div>
             )}
@@ -416,7 +474,7 @@ export default function CreatorDetailPage({
                       className="form-field min-h-28"
                       value={content}
                       onChange={(event) => setContent(event.target.value)}
-                      placeholder={`${creator.name}의 프로젝트를 본 경험을 적어주세요.`}
+                      placeholder={`${artist.name}의 프로젝트를 본 경험을 적어주세요.`}
                     />
                   </label>
                   <button

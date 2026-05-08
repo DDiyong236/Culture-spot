@@ -138,20 +138,7 @@ export default function ProjectsPage() {
   return (
     <div className="surface-grid min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold text-accent">
-            아티스트 프로젝트 탐색
-          </p>
-          <h1 className="mt-2 text-4xl font-bold text-ink">
-            우리 카페와 맞을 아티스트 프로젝트를 찾아보세요.
-          </h1>
-          <p className="mt-4 text-base leading-7 text-ink/72">
-            사용자용 아티스트 찾기처럼 프로젝트를 둘러보고, 마음에 드는
-            프로젝트에는 등록한 카페 정보로 협업 신청을 보낼 수 있습니다.
-          </p>
-        </div>
-
-        <section className="mt-8 rounded-lg border border-line bg-white p-4 shadow-soft">
+        <section className="rounded-lg border border-line bg-white p-4 shadow-soft">
           <div className="flex items-center gap-2 text-primary">
             <Search size={18} aria-hidden="true" />
             <h2 className="font-bold">필터</h2>
@@ -220,9 +207,6 @@ export default function ProjectsPage() {
           <p className="text-sm font-semibold text-primary">
             아티스트 프로젝트 {filteredProjects.length}개
           </p>
-          <p className="text-sm text-ink/62">
-            카드에서 프로젝트를 확인하고 협업 신청을 보낼 수 있습니다.
-          </p>
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
@@ -235,9 +219,6 @@ export default function ProjectsPage() {
           <div className="mt-5 rounded-lg border border-line bg-white p-6 shadow-soft">
             <p className="font-bold text-primary">
               조건에 맞는 아티스트 프로젝트가 없습니다.
-            </p>
-            <p className="mt-2 text-sm leading-6 text-ink/70">
-              검색어를 줄이거나 이벤트 유형, 장르, 동네 필터를 전체로 바꿔보세요.
             </p>
           </div>
         ) : null}

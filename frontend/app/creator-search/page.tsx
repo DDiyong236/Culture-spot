@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   Heart,
@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { creators } from "@/data/mock";
+import { buildArtistProfiles, type ArtistProfile } from "@/lib/artists";
 import { creatorImages } from "@/lib/creatorAssets";
+import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import { baseLikeCount, eventTypeLabel, unique } from "@/lib/utils";
 import type { CreatorProject, EventType } from "@/types";
 
@@ -23,27 +25,37 @@ const eventOptions: Array<{ value: "all" | EventType; label: string }> = [
   { value: "pop-up", label: "팝업" },
 ];
 
-function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
+function readRegisteredCreators() {
+  try {
+    const raw = window.localStorage.getItem(GROUP_CARD_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as CreatorProject[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function ArtistCard({ artist }: { artist: ArtistProfile }) {
   const { hydrated, user, isFavorite, toggleFavorite } = useAuth();
-  const target = { id: creator.id, type: "creator" as const, name: creator.name };
+  const target = { id: artist.id, type: "creator" as const, name: artist.name };
   const favorite = hydrated ? isFavorite(target) : false;
-  const likeCount = baseLikeCount(creator.id) + (favorite ? 1 : 0);
+  const likeCount = baseLikeCount(artist.id) + (favorite ? 1 : 0);
   const canToggle = hydrated && user?.role === "consumer";
+  const imageType = artist.representativeProject.eventType;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white shadow-soft">
       <Link
-        href={`/creators/${creator.id}`}
+        href={`/creators/${artist.id}`}
         className="focus-ring relative block h-48 shrink-0 overflow-hidden"
-        aria-label={`${creator.projectTitle} 자세히 보기`}
+        aria-label={`${artist.name} 자세히 보기`}
       >
         <img
-          src={creatorImages[creator.eventType]}
-          alt={`${creator.projectTitle} 프로젝트 이미지`}
+          src={creatorImages[imageType]}
+          alt={`${artist.name} 아티스트 이미지`}
           className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
         />
         <div className="absolute right-3 top-3 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-primary shadow-soft">
-          {eventTypeLabel(creator.eventType)}
+          프로젝트 {artist.projects.length}개
         </div>
       </Link>
 
@@ -51,12 +63,16 @@ function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold text-ink">{creator.projectTitle}</h2>
-              <span className="badge">{creator.genre}</span>
+              <h2 className="text-lg font-bold text-ink">{artist.name}</h2>
+              {artist.genres.slice(0, 2).map((genre) => (
+                <span key={genre} className="badge">
+                  {genre}
+                </span>
+              ))}
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-primary/75">
               <Sparkles size={15} aria-hidden="true" />
-              {creator.name}
+              {artist.projects.map((project) => project.projectTitle).join(", ")}
             </p>
           </div>
           <button
@@ -69,7 +85,7 @@ function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
                 ? "bg-accent text-white"
                 : "border border-line bg-background text-primary"
             } ${canToggle ? "hover:border-accent" : "cursor-default"}`}
-            aria-label={`${creator.name} 좋아요 ${likeCount}개`}
+            aria-label={`${artist.name} 좋아요 ${likeCount}개`}
           >
             <Heart
               size={14}
@@ -81,37 +97,37 @@ function CreatorProjectCard({ creator }: { creator: CreatorProject }) {
         </div>
 
         <p className="line-clamp-3 text-sm leading-6 text-ink/72">
-          {creator.introduction}
+          {artist.introduction}
         </p>
 
         <div className="grid min-h-[4.5rem] content-start gap-2 text-sm text-ink/74 sm:grid-cols-2">
           <p className="flex items-center gap-2">
             <MapPin size={16} className="text-sage" aria-hidden="true" />
-            {creator.preferredRegion}
+            {artist.preferredRegions.join(", ")}
           </p>
           <p className="flex items-center gap-2">
             <CalendarClock size={16} className="text-sage" aria-hidden="true" />
-            {creator.preferredTime}
+            {artist.preferredTimes.join(", ")}
           </p>
           <p className="flex items-center gap-2 sm:col-span-2">
             <LinkIcon size={16} className="text-sage" aria-hidden="true" />
-            {creator.portfolioUrl}
+            {artist.portfolioUrl}
           </p>
         </div>
 
         <div className="flex flex-wrap content-start gap-2">
-          {creator.requiredConditions.slice(0, 4).map((condition) => (
+          {artist.eventTypes.map((type) => (
             <span
-              key={condition}
+              key={type}
               className="inline-flex items-center gap-1 rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-primary"
             >
-              {condition}
+              {eventTypeLabel(type)}
             </span>
           ))}
         </div>
 
         <Link
-          href={`/creators/${creator.id}`}
+          href={`/creators/${artist.id}`}
           className="focus-ring mt-auto inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
         >
           <Sparkles size={16} aria-hidden="true" />
@@ -127,30 +143,49 @@ export default function CreatorSearchPage() {
   const [eventType, setEventType] = useState<"all" | EventType>("all");
   const [genre, setGenre] = useState("all");
   const [region, setRegion] = useState("all");
+  const [registeredCreators, setRegisteredCreators] = useState<CreatorProject[]>([]);
+
+  useEffect(() => {
+    setRegisteredCreators(readRegisteredCreators());
+  }, []);
+
+  const artistProfiles = useMemo(
+    () => buildArtistProfiles([...registeredCreators, ...creators]),
+    [registeredCreators],
+  );
 
   const genres = useMemo(
     () =>
       unique(
-        creators
-          .filter((creator) => eventType === "all" || creator.eventType === eventType)
-          .map((creator) => creator.genre),
+        artistProfiles
+          .filter(
+            (artist) =>
+              eventType === "all" || artist.eventTypes.includes(eventType),
+          )
+          .flatMap((artist) => artist.genres),
       ).sort(),
-    [eventType],
+    [artistProfiles, eventType],
   );
   const regions = useMemo(
-    () => unique(creators.map((creator) => creator.preferredRegion)).sort(),
-    [],
+    () =>
+      unique(
+        artistProfiles.flatMap((artist) => artist.preferredRegions),
+      ).sort(),
+    [artistProfiles],
   );
 
-  const filteredCreators = creators.filter((creator) => {
+  const filteredArtists = artistProfiles.filter((artist) => {
     const normalizedKeyword = keyword.trim().toLowerCase();
     if (
       normalizedKeyword &&
       ![
-        creator.name,
-        creator.genre,
-        creator.projectTitle,
-        creator.introduction,
+        artist.name,
+        artist.introduction,
+        artist.portfolioUrl,
+        ...artist.genres,
+        ...artist.preferredRegions,
+        ...artist.projects.map((project) => project.projectTitle),
+        ...artist.projects.map((project) => project.introduction),
       ]
         .join(" ")
         .toLowerCase()
@@ -158,27 +193,20 @@ export default function CreatorSearchPage() {
     ) {
       return false;
     }
-    if (eventType !== "all" && creator.eventType !== eventType) return false;
-    if (genre !== "all" && creator.genre !== genre) return false;
-    if (region !== "all" && creator.preferredRegion !== region) return false;
+    if (eventType !== "all" && !artist.eventTypes.includes(eventType)) {
+      return false;
+    }
+    if (genre !== "all" && !artist.genres.includes(genre)) return false;
+    if (region !== "all" && !artist.preferredRegions.includes(region)) {
+      return false;
+    }
     return true;
   });
 
   return (
     <div className="surface-grid min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold text-accent">아티스트 탐색</p>
-          <h1 className="mt-2 text-4xl font-bold text-ink">
-            동네 카페에서 만날 아티스트 프로젝트를 찾아보세요.
-          </h1>
-          <p className="mt-4 text-base leading-7 text-ink/72">
-            전시, 공연, 팝업을 준비하는 아티스트 프로젝트를 공간 찾기처럼
-            둘러보고 상세 페이지에서 후기와 프로젝트 정보를 확인할 수 있습니다.
-          </p>
-        </div>
-
-        <section className="mt-8 rounded-lg border border-line bg-white p-4 shadow-soft">
+        <section className="rounded-lg border border-line bg-white p-4 shadow-soft">
           <div className="flex items-center gap-2 text-primary">
             <Search size={18} aria-hidden="true" />
             <h2 className="font-bold">필터</h2>
@@ -245,25 +273,19 @@ export default function CreatorSearchPage() {
 
         <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-sm font-semibold text-primary">
-            아티스트 프로젝트 {filteredCreators.length}개
-          </p>
-          <p className="text-sm text-ink/62">
-            카드에서 자세히 보기로 이동해 후기와 정보를 확인할 수 있습니다.
+            아티스트 {filteredArtists.length}명
           </p>
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          {filteredCreators.map((creator) => (
-            <CreatorProjectCard key={creator.id} creator={creator} />
+          {filteredArtists.map((artist) => (
+            <ArtistCard key={artist.id} artist={artist} />
           ))}
         </div>
 
-        {!filteredCreators.length ? (
+        {!filteredArtists.length ? (
           <div className="mt-5 rounded-lg border border-line bg-white p-6 shadow-soft">
             <p className="font-bold text-primary">조건에 맞는 아티스트가 없습니다.</p>
-            <p className="mt-2 text-sm leading-6 text-ink/70">
-              검색어를 줄이거나 이벤트 유형, 장르, 동네 필터를 전체로 바꿔보세요.
-            </p>
           </div>
         ) : null}
       </div>
