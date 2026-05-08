@@ -4,6 +4,27 @@ export type NoiseTolerance = "low" | "medium" | "high";
 
 export type PriceType = "free" | "paid" | "collaboration";
 
+export type UserRole = "consumer" | "creator" | "cafeOwner";
+
+export type MockUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+};
+
+export type FavoriteTargetType = "cafe" | "creator";
+
+export type Review = {
+  id: string;
+  targetId: string;
+  targetType: FavoriteTargetType;
+  targetName: string;
+  rating: number;
+  content: string;
+  createdAt: string;
+};
+
 export type Equipment =
   | "Speaker"
   | "Microphone"

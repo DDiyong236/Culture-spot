@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   BadgeCheck,
   Clock,
@@ -8,6 +7,8 @@ import {
   Volume2,
 } from "lucide-react";
 import type { CafeSpace } from "@/types";
+import CafeCardAction from "@/components/CafeCardAction";
+import ConsumerEngagement from "@/components/ConsumerEngagement";
 import {
   equipmentLabel,
   eventTypeLabel,
@@ -119,12 +120,15 @@ export default function CafeCard({
           </p>
         ) : null}
 
-        <Link
-          href="/creators"
-          className="focus-ring inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
-        >
-          이 카페에 신청하기
-        </Link>
+        <CafeCardAction />
+
+        {!compact ? (
+          <ConsumerEngagement
+            targetId={cafe.id}
+            targetType="cafe"
+            targetName={cafe.name}
+          />
+        ) : null}
       </div>
     </article>
   );

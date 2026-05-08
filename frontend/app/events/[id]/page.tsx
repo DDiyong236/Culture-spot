@@ -9,6 +9,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { cafeSpaces, creators, events } from "@/data/mock";
+import ConsumerEngagement from "@/components/ConsumerEngagement";
 import { equipmentLabel, eventTypeLabel } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -133,6 +134,13 @@ export default async function EventDetailPage({
                 <p>분위기: {cafe.atmosphere}</p>
                 <p>장비: {cafe.equipment.map(equipmentLabel).join(", ")}</p>
               </div>
+              <div className="mt-5">
+                <ConsumerEngagement
+                  targetId={cafe.id}
+                  targetType="cafe"
+                  targetName={cafe.name}
+                />
+              </div>
             </article>
           </div>
 
@@ -174,6 +182,13 @@ export default async function EventDetailPage({
               >
                 포트폴리오 보기
               </Link>
+              <div className="mt-4">
+                <ConsumerEngagement
+                  targetId={creator.id}
+                  targetType="creator"
+                  targetName={creator.name}
+                />
+              </div>
             </article>
           </aside>
         </div>

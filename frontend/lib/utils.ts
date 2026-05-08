@@ -1,5 +1,11 @@
 import clsx, { type ClassValue } from "clsx";
-import type { Equipment, EventType, NoiseTolerance, PriceType } from "@/types";
+import type {
+  Equipment,
+  EventType,
+  NoiseTolerance,
+  PriceType,
+  UserRole,
+} from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -51,6 +57,26 @@ export function noiseLabel(noise: NoiseTolerance) {
   };
 
   return labels[noise];
+}
+
+export function roleLabel(role: UserRole) {
+  const labels: Record<UserRole, string> = {
+    consumer: "소비자",
+    creator: "창작자",
+    cafeOwner: "카페 주인",
+  };
+
+  return labels[role];
+}
+
+export function roleHomeLabel(role: UserRole) {
+  const labels: Record<UserRole, string> = {
+    consumer: "내 동네 문화",
+    creator: "창작자 작업실",
+    cafeOwner: "카페 운영 화면",
+  };
+
+  return labels[role];
 }
 
 export function unique<T>(items: T[]) {
