@@ -5,7 +5,11 @@ import type { FilterState } from "@/types";
 
 type FilterBarProps = {
   filters: FilterState;
-  regions: string[];
+  locationOptions: {
+    provinces: string[];
+    cities: string[];
+    regions: string[];
+  };
   onChange: (filters: FilterState) => void;
 };
 
@@ -20,7 +24,7 @@ const toggles: Array<{ key: keyof FilterState; label: string }> = [
 
 export default function FilterBar({
   filters,
-  regions,
+  locationOptions,
   onChange,
 }: FilterBarProps) {
   return (
@@ -30,9 +34,54 @@ export default function FilterBar({
         <h2 className="font-bold">필터</h2>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-4 md:grid-cols-3">
         <label className="space-y-1.5">
-          <span className="label">지역</span>
+          <span className="label">도/시</span>
+          <select
+            className="form-field"
+            value={filters.province}
+            onChange={(event) =>
+              onChange({
+                ...filters,
+                province: event.target.value,
+                city: "all",
+                region: "all",
+              })
+            }
+          >
+            <option value="all">전체 도/시</option>
+            {locationOptions.provinces.map((province) => (
+              <option key={province} value={province}>
+                {province}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-1.5">
+          <span className="label">시/군/구</span>
+          <select
+            className="form-field"
+            value={filters.city}
+            onChange={(event) =>
+              onChange({
+                ...filters,
+                city: event.target.value,
+                region: "all",
+              })
+            }
+          >
+            <option value="all">전체 시/군/구</option>
+            {locationOptions.cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-1.5">
+          <span className="label">동네</span>
           <select
             className="form-field"
             value={filters.region}
@@ -40,8 +89,8 @@ export default function FilterBar({
               onChange({ ...filters, region: event.target.value })
             }
           >
-            <option value="all">전체 지역</option>
-            {regions.map((region) => (
+            <option value="all">전체 동네</option>
+            {locationOptions.regions.map((region) => (
               <option key={region} value={region}>
                 {region}
               </option>

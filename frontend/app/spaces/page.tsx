@@ -9,6 +9,8 @@ import { unique } from "@/lib/utils";
 import type { FilterState } from "@/types";
 
 const defaultFilters: FilterState = {
+  province: "all",
+  city: "all",
   region: "all",
   exhibition: false,
   performance: false,
@@ -18,16 +20,51 @@ const defaultFilters: FilterState = {
   quiet: false,
 };
 
+function getCafeProvince() {
+  return "서울특별시";
+}
+
+function getCafeCity(address: string) {
+  return address.split(" ")[0] ?? "";
+}
+
 export default function SpacesPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const sampleCreator = creators[0];
 
-  const regions = useMemo(
-    () => unique(cafeSpaces.map((cafe) => cafe.region)).sort(),
-    [],
-  );
+  const locationOptions = useMemo(() => {
+    const cities = cafeSpaces
+      .filter(
+        (cafe) =>
+          filters.province === "all" || getCafeProvince() === filters.province,
+      )
+      .map((cafe) => getCafeCity(cafe.address));
+    const regions = cafeSpaces
+      .filter((cafe) => {
+        if (filters.province !== "all" && getCafeProvince() !== filters.province) {
+          return false;
+        }
+        if (filters.city !== "all" && getCafeCity(cafe.address) !== filters.city) {
+          return false;
+        }
+        return true;
+      })
+      .map((cafe) => cafe.region);
+
+    return {
+      provinces: ["서울특별시"],
+      cities: unique(cities).sort(),
+      regions: unique(regions).sort(),
+    };
+  }, [filters.city, filters.province]);
 
   const filteredCafes = cafeSpaces.filter((cafe) => {
+    if (filters.province !== "all" && getCafeProvince() !== filters.province) {
+      return false;
+    }
+    if (filters.city !== "all" && getCafeCity(cafe.address) !== filters.city) {
+      return false;
+    }
     if (filters.region !== "all" && cafe.region !== filters.region) return false;
     if (filters.exhibition && !cafe.availableTypes.includes("exhibition")) {
       return false;
@@ -74,7 +111,7 @@ export default function SpacesPage() {
         <div className="mt-8">
           <FilterBar
             filters={filters}
-            regions={regions}
+            locationOptions={locationOptions}
             onChange={setFilters}
           />
         </div>

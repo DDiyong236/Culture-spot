@@ -35,9 +35,9 @@ export default function CafeCard({
     cafe.atmosphere,
     `소음 허용 ${noiseLabel(cafe.noiseTolerance)}`,
   ].filter((feature): feature is string => Boolean(feature));
-  const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-[9rem]";
-  const detailHeight = compact ? "min-h-[4.5rem]" : "min-h-[4.25rem]";
-  const featureHeight = compact ? "min-h-[4.25rem]" : "min-h-[4.75rem]";
+  const summaryHeight = compact ? "min-h-[4.5rem]" : "min-h-0";
+  const detailHeight = compact ? "min-h-[4.5rem]" : "min-h-[3.75rem]";
+  const featureHeight = compact ? "min-h-[4.25rem]" : "min-h-0";
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-card shadow-soft">

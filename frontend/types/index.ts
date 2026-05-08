@@ -91,6 +91,8 @@ export type MatchingResult = {
 };
 
 export type FilterState = {
+  province: string;
+  city: string;
   region: string;
   exhibition: boolean;
   performance: boolean;
