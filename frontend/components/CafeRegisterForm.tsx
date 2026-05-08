@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { ImagePlus, Store } from "lucide-react";
+import { ImagePlus, Link as LinkIcon, Star, Store, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type {
   CafeSpace,
@@ -138,9 +138,13 @@ export default function CafeRegisterForm() {
     const nextImage = form.spaceImageUrl.trim();
     if (!nextImage) return;
 
+    addSpaceImages([nextImage]);
+  }
+
+  function addSpaceImages(images: string[]) {
     setForm((current) => ({
       ...current,
-      spaceImages: Array.from(new Set([...current.spaceImages, nextImage])),
+      spaceImages: Array.from(new Set([...current.spaceImages, ...images])),
       spaceImageUrl: "",
     }));
   }
@@ -149,6 +153,16 @@ export default function CafeRegisterForm() {
     setForm((current) => ({
       ...current,
       spaceImages: current.spaceImages.filter((item) => item !== image),
+    }));
+  }
+
+  function makeRepresentativeImage(image: string) {
+    setForm((current) => ({
+      ...current,
+      spaceImages: [
+        image,
+        ...current.spaceImages.filter((item) => item !== image),
+      ],
     }));
   }
 
@@ -380,47 +394,72 @@ export default function CafeRegisterForm() {
 
         <div className="mt-4 space-y-1.5">
           <span className="label">공간 이미지</span>
-          <div className="grid gap-4 rounded-lg border border-dashed border-line bg-background p-4 lg:grid-cols-[0.42fr_0.58fr]">
-            <div className="grid gap-2">
-              {(form.spaceImages.length
-                ? form.spaceImages
-                : [fallbackSpaceImage]
-              ).map((image, index) => (
-                <div
-                  key={`${image}-${index}`}
-                  className="relative overflow-hidden rounded-lg border border-line bg-white"
-                >
+          <div className="grid gap-4 rounded-lg border border-dashed border-line bg-background p-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="relative min-h-64 overflow-hidden rounded-lg border border-line bg-white">
+              {form.spaceImages[0] ? (
+                <>
                   <img
-                    src={image}
-                    alt={`등록할 카페 공간 사진 ${index + 1}`}
-                    className="h-32 w-full object-cover"
+                    src={form.spaceImages[0]}
+                    alt="대표로 등록할 카페 공간 사진"
+                    className="h-full min-h-64 w-full object-cover"
                   />
-                  {form.spaceImages.length ? (
-                    <button
-                      type="button"
-                      onClick={() => removeSpaceImage(image)}
-                      className="absolute right-2 top-2 rounded-full bg-white/92 px-2.5 py-1 text-xs font-bold text-primary shadow-sm"
-                    >
-                      삭제
-                    </button>
-                  ) : null}
-                  {index === 0 ? (
-                    <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-white">
-                      대표
-                    </span>
-                  ) : null}
-                </div>
-              ))}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-16 text-white">
+                    <p className="inline-flex items-center gap-1.5 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-primary">
+                      <Star size={13} className="fill-current" aria-hidden="true" />
+                      대표 이미지
+                    </p>
+                    <p className="mt-2 text-sm font-semibold">
+                      카페 카드와 상세 화면에 먼저 표시됩니다.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeSpaceImage(form.spaceImages[0])}
+                    className="focus-ring absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/92 px-3 py-1.5 text-xs font-bold text-primary shadow-sm transition hover:bg-white"
+                  >
+                    <Trash2 size={13} aria-hidden="true" />
+                    삭제
+                  </button>
+                </>
+              ) : (
+                <label
+                  htmlFor="cafe-space-images"
+                  className="focus-ring flex h-full min-h-64 cursor-pointer flex-col items-center justify-center gap-3 p-6 text-center text-primary transition hover:bg-white"
+                >
+                  <span className="inline-flex size-12 items-center justify-center rounded-full bg-mist">
+                    <ImagePlus size={24} aria-hidden="true" />
+                  </span>
+                  <span className="text-base font-bold">공간 사진 추가</span>
+                  <span className="text-sm leading-6 text-ink/62">
+                    벽면, 좌석, 코너처럼 실제로 사용할 공간이 보이는 사진을
+                    넣어주세요.
+                  </span>
+                </label>
+              )}
             </div>
-            <div className="flex flex-col justify-center gap-3">
-              <div className="flex items-center gap-2 text-primary">
-                <ImagePlus size={18} aria-hidden="true" />
-                <span className="text-sm font-bold">
-                  아티스트가 확인할 공간 사진을 여러 장 넣어주세요
-                </span>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <ImagePlus size={18} aria-hidden="true" />
+                  <span className="text-sm font-bold">
+                    {form.spaceImages.length
+                      ? `${form.spaceImages.length}장 선택됨`
+                      : "사진을 선택해 주세요"}
+                  </span>
+                </div>
+                <label
+                  htmlFor="cafe-space-images"
+                  className="focus-ring inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+                >
+                  <ImagePlus size={16} aria-hidden="true" />
+                  사진 선택
+                </label>
               </div>
+
               <input
-                className="form-field file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white"
+                id="cafe-space-images"
+                className="sr-only"
                 type="file"
                 accept="image/*"
                 multiple
@@ -428,31 +467,84 @@ export default function CafeRegisterForm() {
                   const files = Array.from(event.target.files ?? []);
                   if (!files.length) return;
                   const imageUrls = await Promise.all(files.map(readImageFile));
-                  setForm((current) => ({
-                    ...current,
-                    spaceImages: [...current.spaceImages, ...imageUrls],
-                  }));
+                  addSpaceImages(imageUrls);
                   event.target.value = "";
                 }}
               />
+
+              {form.spaceImages.length ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {form.spaceImages.map((image, index) => (
+                    <div
+                      key={`${image}-${index}`}
+                      className="group relative overflow-hidden rounded-lg border border-line bg-white"
+                    >
+                      <img
+                        src={image}
+                        alt={`등록할 카페 공간 사진 ${index + 1}`}
+                        className="h-24 w-full object-cover"
+                      />
+                      {index === 0 ? (
+                        <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white">
+                          대표
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => makeRepresentativeImage(image)}
+                          className="focus-ring absolute left-2 top-2 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-primary shadow-sm transition hover:bg-white"
+                        >
+                          대표로
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeSpaceImage(image)}
+                        className="focus-ring absolute right-2 top-2 inline-flex size-7 items-center justify-center rounded-full bg-white/92 text-primary shadow-sm transition hover:bg-white"
+                        aria-label={`공간 사진 ${index + 1} 삭제`}
+                      >
+                        <Trash2 size={14} aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-line bg-white p-4 text-sm leading-6 text-ink/62">
+                  사진을 넣지 않으면 기본 카페 이미지가 임시로 사용됩니다.
+                </div>
+              )}
+
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                <input
-                  className="form-field"
-                  value={form.spaceImageUrl}
-                  onChange={(event) => update("spaceImageUrl", event.target.value)}
-                  placeholder="또는 https:// 이미지 주소"
-                />
+                <label className="relative">
+                  <LinkIcon
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary/55"
+                    aria-hidden="true"
+                  />
+                  <input
+                    className="form-field pl-9"
+                    value={form.spaceImageUrl}
+                    onChange={(event) => update("spaceImageUrl", event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      addSpaceImageUrl();
+                    }}
+                    placeholder="https:// 이미지 주소"
+                  />
+                </label>
                 <button
                   type="button"
                   onClick={addSpaceImageUrl}
                   className="focus-ring rounded-lg border border-line bg-white px-4 py-2 text-sm font-bold text-primary transition hover:border-accent"
                 >
-                  추가
+                  주소 추가
                 </button>
               </div>
+
               <p className="text-xs leading-5 text-ink/58">
-                벽면, 코너, 작은 무대처럼 활용될 실제 카페 공간이 보이는
-                이미지를 권장합니다. 첫 번째 이미지가 대표 이미지로 사용됩니다.
+                첫 번째 사진이 대표 이미지로 사용됩니다. 썸네일의 대표로 버튼을
+                누르면 순서를 바꿀 수 있습니다.
               </p>
             </div>
           </div>

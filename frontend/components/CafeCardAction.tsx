@@ -80,7 +80,7 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
     }
 
     setAppliedMessage(
-      `${application.projectTitle} 활동으로 ${cafe.name}에 신청 완료되었습니다.`,
+      `${application.projectTitle} 프로젝트로 ${cafe.name}에 신청 완료되었습니다.`,
     );
     setIsChoosing(false);
     setIsConfirming(false);
@@ -103,7 +103,7 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
             {groupCards.length ? (
               <div className="space-y-3">
                 <label className="space-y-1.5">
-                  <span className="label">신청할 활동 카드</span>
+                  <span className="label">신청할 프로젝트 카드</span>
                   <select
                     className="form-field"
                     value={selectedGroupId}
@@ -128,14 +128,14 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm leading-6 text-ink/70">
-                  아직 저장된 활동 카드가 없습니다. 먼저 활동 등록에서 신청할
-                  카드를 만들어주세요.
+                  아직 저장된 프로젝트 카드가 없습니다. 먼저 프로젝트 등록에서
+                  신청할 카드를 만들어주세요.
                 </p>
                 <Link
                   href="/creators"
                   className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent"
                 >
-                  활동 등록으로 이동
+                  프로젝트 등록으로 이동
                 </Link>
               </div>
             )}
@@ -162,7 +162,7 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
                 찐으로 신청하겠습니까?
               </h2>
               <p className="mt-3 text-sm leading-6 text-ink/70">
-                {selectedGroup?.projectTitle || "선택한 활동"} 카드로 {cafe.name}에
+                {selectedGroup?.projectTitle || "선택한 프로젝트"} 카드로 {cafe.name}에
                 협업 신청을 보냅니다.
               </p>
               <div className="mt-5 flex gap-2">

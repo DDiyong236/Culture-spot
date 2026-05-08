@@ -6,7 +6,11 @@ import { useAuth } from "@/components/AuthProvider";
 import type { CreatorProject, EventType } from "@/types";
 import { eventTypeLabel } from "@/lib/utils";
 import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
-import { registerProjectActivity, resolveCreatorId } from "@/lib/projectApi";
+import {
+  getProjectBackendLog,
+  registerProject,
+  resolveCreatorId,
+} from "@/lib/projectApi";
 
 const timeOptions = [
   "평일 오전",
@@ -127,18 +131,17 @@ export default function CreatorForm() {
     event.preventDefault();
     const draftCard = {
       ...form,
-      id: `activity-${Date.now()}`,
+      id: `project-${Date.now()}`,
       name: artistName,
     };
 
     setSubmitStatus("saving");
-    setSubmitMessage("");
+    const creatorId = resolveCreatorId(user?.id);
+    const backendLog = getProjectBackendLog(creatorId);
+    setSubmitMessage(`백엔드 연결 확인 중: ${backendLog.backendUrl}`);
 
     try {
-      const projectId = await registerProjectActivity(
-        draftCard,
-        resolveCreatorId(user?.id),
-      );
+      const projectId = await registerProject(draftCard, creatorId);
       const savedCard = {
         ...draftCard,
         id: `backend-project-${projectId}`,
@@ -150,11 +153,13 @@ export default function CreatorForm() {
         name: artistName,
       });
       setSubmitStatus("saved");
-      setSubmitMessage("DB에 활동이 등록되었습니다.");
+      setSubmitMessage(
+        `DB에 프로젝트가 등록되었습니다. 연결된 백엔드: ${backendLog.backendUrl}`,
+      );
     } catch {
       setSubmitStatus("error");
       setSubmitMessage(
-        "활동 등록에 실패했습니다. 백엔드 프로젝트 엔드포인트를 확인해주세요.",
+        `프로젝트 등록에 실패했습니다. 시도한 백엔드: ${backendLog.backendUrl}`,
       );
     }
   }
@@ -170,12 +175,12 @@ export default function CreatorForm() {
         className="rounded-lg border border-line bg-white p-5 shadow-soft"
       >
         <div>
-          <p className="text-sm font-semibold text-accent">활동 등록</p>
+          <p className="text-sm font-semibold text-accent">프로젝트 등록</p>
           <h2 className="mt-1 text-2xl font-bold text-ink">
-            어떤 활동을 동네 카페에 올리고 싶나요?
+            어떤 프로젝트를 동네 카페에 올리고 싶나요?
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            공연, 전시, 팝업처럼 카페 안에 자연스럽게 놓일 작은 활동을
+            공연, 전시, 팝업처럼 카페 안에 자연스럽게 놓일 작은 프로젝트를
             카드로 저장해두세요.
           </p>
         </div>
@@ -259,7 +264,7 @@ export default function CreatorForm() {
 
         <div className="mt-4">
           <label className="space-y-1.5">
-            <span className="label">활동 소개</span>
+            <span className="label">프로젝트 소개</span>
             <textarea
               className="form-field min-h-24"
               value={form.introduction}
@@ -276,11 +281,13 @@ export default function CreatorForm() {
             className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Sparkles size={18} aria-hidden="true" />
-            {submitStatus === "saving" ? "DB에 등록 중..." : "활동 카드 저장하기"}
+            {submitStatus === "saving"
+              ? "DB에 등록 중..."
+              : "프로젝트 카드 저장하기"}
           </button>
           {submitMessage ? (
             <p
-              className={`mt-3 text-sm font-semibold ${
+              className={`mt-3 break-all text-sm font-semibold ${
                 submitStatus === "error" ? "text-red-700" : "text-primary"
               }`}
             >
@@ -293,9 +300,9 @@ export default function CreatorForm() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">저장된 활동 카드</p>
+            <p className="text-sm font-semibold text-accent">저장된 프로젝트 카드</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              신청할 활동을 카드로 보관합니다.
+              신청할 프로젝트를 카드로 보관합니다.
             </h2>
           </div>
           <p className="text-sm font-semibold text-primary">
@@ -316,7 +323,7 @@ export default function CreatorForm() {
                       {eventTypeLabel(card.eventType)}
                     </p>
                     <h3 className="mt-1 text-xl font-bold text-ink">
-                      {card.projectTitle || "활동 제목 미입력"}
+                      {card.projectTitle || "프로젝트 제목 미입력"}
                     </h3>
                   </div>
                   <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
@@ -325,7 +332,7 @@ export default function CreatorForm() {
                 </div>
                 <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink/70">
                   {card.introduction ||
-                    "활동 소개를 입력하면 이 카드에 설명이 저장됩니다."}
+                    "프로젝트 소개를 입력하면 이 카드에 설명이 저장됩니다."}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="badge">{card.preferredRegion}</span>
@@ -345,11 +352,11 @@ export default function CreatorForm() {
             <div className="rounded-lg border border-dashed border-line bg-background p-5 md:col-span-2 xl:col-span-3">
               <div className="flex items-center gap-2 text-primary">
                 <UsersRound size={18} aria-hidden="true" />
-                <p className="font-bold">아직 저장된 활동 카드가 없습니다.</p>
+                <p className="font-bold">아직 저장된 프로젝트 카드가 없습니다.</p>
               </div>
               <p className="mt-2 text-sm leading-6 text-ink/70">
-                활동 정보를 입력하고 저장하면 이곳에 카드가 생깁니다. 필요 없는
-                카드는 바로 제거할 수 있습니다.
+                프로젝트 정보를 입력하고 저장하면 이곳에 카드가 생깁니다. 필요
+                없는 카드는 바로 제거할 수 있습니다.
               </p>
             </div>
           )}

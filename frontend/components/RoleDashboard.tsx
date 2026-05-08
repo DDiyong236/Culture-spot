@@ -408,7 +408,7 @@ function CreatorDashboard() {
     (user?.name && user.name !== "아티스트" ? user.name : "홍길동");
   const artistIntro =
     primaryProject?.introduction ||
-    `${artistName} 계정으로 시연 중입니다. 활동을 등록하면 소개와 대표 장르가 이곳에 이어서 표시됩니다.`;
+    `${artistName} 계정으로 시연 중입니다. 프로젝트를 등록하면 소개와 대표 장르가 이곳에 이어서 표시됩니다.`;
   const artistProfileImage =
     "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=500&q=80";
   const artistSpecialty = artistGenres.length
@@ -425,23 +425,23 @@ function CreatorDashboard() {
           ...artistRegions,
         ]),
       )
-    : ["시연 계정", "활동 등록 대기"];
+    : ["시연 계정", "프로젝트 등록 대기"];
 
   return (
     <div className="space-y-6">
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-          <div className="flex max-w-4xl flex-col gap-5 md:flex-row">
-            <div className="w-full overflow-hidden rounded-lg border border-line bg-background md:w-44">
+          <div className="flex max-w-4xl flex-col gap-5 md:flex-row md:items-stretch">
+            <div className="relative h-56 w-full overflow-hidden rounded-lg border border-line bg-background md:h-auto md:w-44 md:self-stretch">
               <img
                 src={artistProfileImage}
                 alt={`${artistName} 임시 프로필 이미지`}
-                className="h-44 w-full object-cover"
+                className="h-full w-full object-cover"
               />
-              <div className="p-3">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/90 to-transparent p-3 pt-10">
                 <p className="text-xs font-bold text-accent">임시 프로필</p>
                 <p className="mt-1 text-sm font-bold text-primary">
-                  {artistBaseRegion} 기반 활동
+                  {artistBaseRegion} 기반 프로젝트
                 </p>
               </div>
             </div>
@@ -462,7 +462,7 @@ function CreatorDashboard() {
               <div className="mt-4 grid gap-3 text-sm text-ink/70 sm:grid-cols-2">
                 <p className="rounded-lg border border-line bg-background p-3">
                   <span className="block text-xs font-bold text-primary/62">
-                    활동 분야
+                    프로젝트 분야
                   </span>
                   <span className="mt-1 block font-bold text-ink">
                     {artistSpecialty}
@@ -484,14 +484,14 @@ function CreatorDashboard() {
             href="/creators"
             className="focus-ring inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary/90"
           >
-            {primaryProject ? "활동 관리하기" : "활동 등록하기"}
+            {primaryProject ? "프로젝트 관리하기" : "프로젝트 등록하기"}
           </Link>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
-              label: "내 활동",
+              label: "내 프로젝트",
               value: `${projectCards.length}개`,
               icon: <Palette size={18} aria-hidden="true" />,
             },
@@ -528,9 +528,9 @@ function CreatorDashboard() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">내 활동</p>
+            <p className="text-sm font-semibold text-accent">내 프로젝트</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              카페에 제안할 활동 카드
+              카페에 제안할 프로젝트 카드
             </h2>
           </div>
           <Link
@@ -566,7 +566,7 @@ function CreatorDashboard() {
                 </div>
                 <p className="mt-3 line-clamp-3 text-sm leading-6 text-ink/70">
                   {card.introduction ||
-                    "활동 소개를 입력하면 작업실 카드에 짧게 표시됩니다."}
+                    "프로젝트 소개를 입력하면 작업실 카드에 짧게 표시됩니다."}
                 </p>
                 <div className="mt-4 grid gap-2 text-sm text-ink/70 sm:grid-cols-2">
                   <p className="flex items-center gap-2">
@@ -587,7 +587,7 @@ function CreatorDashboard() {
           ) : (
             <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
               <p className="font-bold text-primary">
-                아직 등록된 활동 카드가 없습니다.
+                아직 등록된 프로젝트 카드가 없습니다.
               </p>
             </div>
           )}

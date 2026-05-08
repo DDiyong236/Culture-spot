@@ -179,7 +179,7 @@ export function adaptBackendPlace(place: BackendPlaceResponse): CafeSpace {
   const noiseTolerance = normalizeNoiseTolerance(place.allowSound);
   const description =
     place.description ||
-    "백엔드에 등록된 카페 공간입니다. 운영 중인 카페의 일부 공간을 작은 문화 활동에 활용할 수 있습니다.";
+    "백엔드에 등록된 카페 공간입니다. 운영 중인 카페의 일부 공간을 작은 문화 프로젝트에 활용할 수 있습니다.";
   const equipment = inferEquipment(place, eventTypes);
   const hasWallSpace =
     eventTypes.includes("exhibition") ||
