@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Coffee,
   LogOut,
@@ -54,10 +54,16 @@ function getNavItems(role?: UserRole) {
 export default function Header() {
   const { user, hydrated, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const navItems = getNavItems(user?.role);
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
+
+  function handleLogout() {
+    logout();
+    router.push("/onboarding");
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-background/92 backdrop-blur">
@@ -110,7 +116,7 @@ export default function Header() {
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                onClick={logout}
+                onClick={handleLogout}
                 className="focus-ring inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-primary/75 transition hover:bg-white hover:text-primary"
               >
                 <LogOut size={16} aria-hidden="true" />
