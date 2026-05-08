@@ -5,6 +5,7 @@ import { FormEvent, use, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   CalendarClock,
+  Coffee,
   Heart,
   Link as LinkIcon,
   MapPin,
@@ -14,7 +15,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { creators } from "@/data/mock";
+import { cafeSpaces, creators, events } from "@/data/mock";
 import { creatorImages } from "@/lib/creatorAssets";
 import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import { baseLikeCount, eventTypeLabel } from "@/lib/utils";
@@ -59,6 +60,17 @@ function readPhoto(file: File) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function formatScheduleDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(date);
 }
 
 export default function CreatorDetailPage({
@@ -109,6 +121,16 @@ export default function CreatorDetailPage({
       })),
     ];
   }, [creator, getReviewsForTarget]);
+
+  const scheduleItems = useMemo(() => {
+    if (!creator) return [];
+
+    return events
+      .filter((event) => event.creatorId === creator.id)
+      .sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+  }, [creator]);
 
   async function handlePhotoChange(file?: File) {
     if (!file) {
@@ -252,6 +274,95 @@ export default function CreatorDetailPage({
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-lg border border-line bg-white p-5 shadow-soft">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-sm font-semibold text-accent">아티스트 일정</p>
+              <h2 className="mt-1 text-2xl font-bold text-ink">
+                앞으로 만날 수 있는 동네 일정
+              </h2>
+            </div>
+            <span className="rounded-full bg-mist px-3 py-1 text-sm font-bold text-primary">
+              {scheduleItems.length ? `${scheduleItems.length}개 예정` : "일정 준비 중"}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {scheduleItems.length ? (
+              scheduleItems.map((item) => {
+                const cafe = cafeSpaces.find((space) => space.id === item.cafeId);
+
+                return (
+                  <article
+                    key={item.id}
+                    className="rounded-lg border border-line bg-background p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <span className="badge">{eventTypeLabel(item.eventType)}</span>
+                        <h3 className="mt-3 text-xl font-bold text-ink">
+                          {item.title}
+                        </h3>
+                      </div>
+                      <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-bold text-primary">
+                        <CalendarClock size={15} aria-hidden="true" />
+                        {formatScheduleDate(item.date)}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 grid gap-2 text-sm text-ink/72 sm:grid-cols-2">
+                      <p className="flex items-center gap-2">
+                        <CalendarClock
+                          size={16}
+                          className="text-sage"
+                          aria-hidden="true"
+                        />
+                        {item.time}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Coffee size={16} className="text-sage" aria-hidden="true" />
+                        {cafe?.name ?? "카페 장소 협의 중"}
+                      </p>
+                      {cafe ? (
+                        <p className="flex items-center gap-2 sm:col-span-2">
+                          <MapPin
+                            size={16}
+                            className="text-sage"
+                            aria-hidden="true"
+                          />
+                          {cafe.region} · {cafe.address}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-4 text-sm leading-6 text-ink/72">
+                      {item.description}
+                    </p>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {item.tags.map((tag) => (
+                        <span key={tag} className="badge">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <div className="rounded-lg border border-dashed border-line bg-background p-5 lg:col-span-2">
+                <p className="font-bold text-primary">
+                  아직 확정된 공개 일정이 없습니다.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">
+                  {creator.name || "이 아티스트"}는 {creator.preferredRegion}에서{" "}
+                  {creator.preferredTime} 일정으로 카페 협업을 준비하고 있습니다.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 

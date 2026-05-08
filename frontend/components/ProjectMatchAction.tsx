@@ -6,21 +6,15 @@ import { useEffect, useState } from "react";
 import type { CafeSpace, CreatorProject } from "@/types";
 import {
   CAFE_CARD_STORAGE_KEY,
-  PROJECT_APPLICATION_STORAGE_KEY,
 } from "@/lib/storageKeys";
+import {
+  readProjectApplications,
+  writeProjectApplications,
+  type ProjectApplication,
+} from "@/lib/projectApplications";
 
 type ProjectMatchActionProps = {
   project: CreatorProject;
-};
-
-type ProjectApplication = {
-  id: string;
-  projectId: string;
-  projectTitle: string;
-  creatorName: string;
-  cafeId: string;
-  cafeName: string;
-  createdAt: string;
 };
 
 export default function ProjectMatchAction({ project }: ProjectMatchActionProps) {
@@ -53,22 +47,14 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
       cafeId: selectedCafe.id,
       cafeName: selectedCafe.name,
       createdAt: new Date().toISOString(),
+      status: "pending",
     };
 
     try {
-      const raw = window.localStorage.getItem(PROJECT_APPLICATION_STORAGE_KEY);
-      const applications = raw
-        ? (JSON.parse(raw) as ProjectApplication[])
-        : [];
-      window.localStorage.setItem(
-        PROJECT_APPLICATION_STORAGE_KEY,
-        JSON.stringify([application, ...applications]),
-      );
+      const applications = readProjectApplications();
+      writeProjectApplications([application, ...applications]);
     } catch {
-      window.localStorage.setItem(
-        PROJECT_APPLICATION_STORAGE_KEY,
-        JSON.stringify([application]),
-      );
+      writeProjectApplications([application]);
     }
 
     setAppliedMessage(
