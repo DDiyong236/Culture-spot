@@ -128,6 +128,7 @@ export default function CafeRegisterForm() {
       availableTypes,
       capacity: Math.max(6, Math.min(form.seats, 24)),
       seats: form.seats,
+      operatingHours: form.operatingHours,
       availableTimeSlots: [
         form.operatingHours ? `${form.operatingHours} 중 협의` : "운영 중 협의",
       ],

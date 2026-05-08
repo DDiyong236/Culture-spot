@@ -34,6 +34,7 @@ type ReviewInput = {
   targetName: string;
   rating: number;
   content: string;
+  photoUrl?: string;
 };
 
 type AuthContextValue = {
@@ -145,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         targetName: input.targetName,
         rating: input.rating,
         content,
+        photoUrl: input.photoUrl,
         createdAt: new Date().toISOString(),
       },
       ...current,

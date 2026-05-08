@@ -1,5 +1,6 @@
 import clsx, { type ClassValue } from "clsx";
 import type {
+  CafeSpace,
   Equipment,
   EventType,
   NoiseTolerance,
@@ -86,4 +87,22 @@ export function scoreTone(score: number) {
   if (score >= 85) return "bg-sage text-white";
   if (score >= 70) return "bg-accent text-white";
   return "bg-primary text-white";
+}
+
+export function formatOpeningHours(cafe: Pick<CafeSpace, "operatingHours">) {
+  return cafe.operatingHours ?? "10:00 - 22:00";
+}
+
+export function cafeSizeLabel(cafe: Pick<CafeSpace, "capacity">) {
+  if (cafe.capacity <= 22) return "아담한 공간";
+  if (cafe.capacity <= 32) return "중간 규모 공간";
+  return "넓은 공간";
+}
+
+export function baseLikeCount(id: string) {
+  return (
+    Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) %
+      68 +
+    12
+  );
 }

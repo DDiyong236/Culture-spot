@@ -40,11 +40,15 @@ function getNavItems(role?: UserRole) {
   if (role === "consumer") {
     return [
       ...baseItems,
+      { href: "/creator-search", label: "창작자 찾기", icon: Palette },
       { href: "/dashboard", label: "내 동네 문화", icon: UserRound },
     ];
   }
 
-  return baseItems;
+  return [
+    ...baseItems,
+    { href: "/creator-search", label: "창작자 찾기", icon: Palette },
+  ];
 }
 
 export default function Header() {

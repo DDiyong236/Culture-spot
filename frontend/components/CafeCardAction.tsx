@@ -163,11 +163,11 @@ export default function CafeCardAction({ cafe }: CafeCardActionProps) {
 
   return (
     <Link
-      href="/spaces"
+      href={`/cafes/${cafe.id}`}
       className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
     >
       <Map size={16} aria-hidden="true" />
-      공간 둘러보기
+      카페 자세히 보기
     </Link>
   );
 }

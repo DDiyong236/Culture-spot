@@ -4,8 +4,13 @@ import { useMemo, useState } from "react";
 import CafeCard from "@/components/CafeCard";
 import FilterBar from "@/components/FilterBar";
 import { cafeSpaces, creators } from "@/data/mock";
+import {
+  getCafeLocation,
+  getCityOptions,
+  getProvinceOptions,
+  getRegionOptions,
+} from "@/lib/locations";
 import { calculateMatchingScore } from "@/lib/matching";
-import { unique } from "@/lib/utils";
 import type { FilterState } from "@/types";
 
 const defaultFilters: FilterState = {
@@ -20,52 +25,29 @@ const defaultFilters: FilterState = {
   quiet: false,
 };
 
-function getCafeProvince() {
-  return "서울특별시";
-}
-
-function getCafeCity(address: string) {
-  return address.split(" ")[0] ?? "";
-}
-
 export default function SpacesPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const sampleCreator = creators[0];
 
   const locationOptions = useMemo(() => {
-    const cities = cafeSpaces
-      .filter(
-        (cafe) =>
-          filters.province === "all" || getCafeProvince() === filters.province,
-      )
-      .map((cafe) => getCafeCity(cafe.address));
-    const regions = cafeSpaces
-      .filter((cafe) => {
-        if (filters.province !== "all" && getCafeProvince() !== filters.province) {
-          return false;
-        }
-        if (filters.city !== "all" && getCafeCity(cafe.address) !== filters.city) {
-          return false;
-        }
-        return true;
-      })
-      .map((cafe) => cafe.region);
-
     return {
-      provinces: ["서울특별시"],
-      cities: unique(cities).sort(),
-      regions: unique(regions).sort(),
+      provinces: getProvinceOptions(),
+      cities: getCityOptions(filters.province),
+      regions: getRegionOptions(filters.province, filters.city),
     };
   }, [filters.city, filters.province]);
 
   const filteredCafes = cafeSpaces.filter((cafe) => {
-    if (filters.province !== "all" && getCafeProvince() !== filters.province) {
+    const location = getCafeLocation(cafe);
+    if (filters.province !== "all" && location.province !== filters.province) {
       return false;
     }
-    if (filters.city !== "all" && getCafeCity(cafe.address) !== filters.city) {
+    if (filters.city !== "all" && location.city !== filters.city) {
       return false;
     }
-    if (filters.region !== "all" && cafe.region !== filters.region) return false;
+    if (filters.region !== "all" && location.region !== filters.region) {
+      return false;
+    }
     if (filters.exhibition && !cafe.availableTypes.includes("exhibition")) {
       return false;
     }
@@ -131,7 +113,6 @@ export default function SpacesPage() {
               key={result.cafe.id}
               cafe={result.cafe}
               score={result.totalScore}
-              reason={result.recommendationReason}
             />
           ))}
         </div>

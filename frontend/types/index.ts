@@ -22,6 +22,7 @@ export type Review = {
   targetName: string;
   rating: number;
   content: string;
+  photoUrl?: string;
   createdAt: string;
 };
 
@@ -41,6 +42,7 @@ export type CafeSpace = {
   availableTypes: EventType[];
   capacity: number;
   seats: number;
+  operatingHours?: string;
   availableTimeSlots: string[];
   hasWallSpace: boolean;
   hasCornerSpace: boolean;
