@@ -25,6 +25,16 @@ const eventOptions: Array<{ value: "all" | EventType; label: string }> = [
   { value: "pop-up", label: "팝업" },
 ];
 
+function getArtistHeadlineTags(artist: ArtistProfile) {
+  return unique(
+    [
+      artist.genres[0],
+      artist.eventTypes[0] ? eventTypeLabel(artist.eventTypes[0]) : undefined,
+      artist.preferredRegions[0],
+    ].filter((tag): tag is string => Boolean(tag)),
+  );
+}
+
 function readRegisteredCreators() {
   try {
     const raw = window.localStorage.getItem(GROUP_CARD_STORAGE_KEY);
@@ -41,6 +51,7 @@ function ArtistCard({ artist }: { artist: ArtistProfile }) {
   const likeCount = baseLikeCount(artist.id) + (favorite ? 1 : 0);
   const canToggle = hydrated && user?.role === "consumer";
   const imageType = artist.representativeProject.eventType;
+  const headlineTags = getArtistHeadlineTags(artist);
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white shadow-soft">
@@ -64,9 +75,9 @@ function ArtistCard({ artist }: { artist: ArtistProfile }) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg font-bold text-ink">{artist.name}</h2>
-              {artist.genres.slice(0, 2).map((genre) => (
-                <span key={genre} className="badge">
-                  {genre}
+              {headlineTags.map((tag) => (
+                <span key={tag} className="badge">
+                  {tag}
                 </span>
               ))}
             </div>
@@ -113,17 +124,6 @@ function ArtistCard({ artist }: { artist: ArtistProfile }) {
             <LinkIcon size={16} className="text-sage" aria-hidden="true" />
             {artist.portfolioUrl}
           </p>
-        </div>
-
-        <div className="flex flex-wrap content-start gap-2">
-          {artist.eventTypes.map((type) => (
-            <span
-              key={type}
-              className="inline-flex items-center gap-1 rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-primary"
-            >
-              {eventTypeLabel(type)}
-            </span>
-          ))}
         </div>
 
         <Link

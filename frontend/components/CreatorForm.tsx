@@ -1,13 +1,12 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { PencilLine, Save, Sparkles, UsersRound } from "lucide-react";
-import type { CreatorProject, EventType, MatchingResult } from "@/types";
-import { cafeSpaces } from "@/data/mock";
-import { rankCafeMatches } from "@/lib/matching";
-import CafeCard from "@/components/CafeCard";
+import { Sparkles, Trash2, UsersRound } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
+import type { CreatorProject, EventType } from "@/types";
 import { eventTypeLabel } from "@/lib/utils";
 import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
+import { registerProjectActivity, resolveCreatorId } from "@/lib/projectApi";
 
 const timeOptions = [
   "평일 오전",
@@ -71,11 +70,16 @@ const defaultGroupForm: CreatorProject = {
 };
 
 export default function CreatorForm() {
+  const { user } = useAuth();
+  const artistName =
+    user?.name && user.name !== "아티스트" ? user.name : "홍길동";
   const [form, setForm] = useState<CreatorProject>(defaultGroupForm);
   const [groupCards, setGroupCards] = useState<CreatorProject[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [results, setResults] = useState<MatchingResult[]>([]);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
   const genreOptions = genreOptionsByEventType[form.eventType].includes(
     form.genre,
   )
@@ -119,27 +123,44 @@ export default function CreatorForm() {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const savedCard = {
+    const draftCard = {
       ...form,
-      id: editingId ?? `group-${Date.now()}`,
+      id: `activity-${Date.now()}`,
+      name: artistName,
     };
 
-    setGroupCards((current) =>
-      editingId
-        ? current.map((card) => (card.id === editingId ? savedCard : card))
-        : [savedCard, ...current],
-    );
-    setForm(savedCard);
-    setEditingId(null);
-    setResults(rankCafeMatches(savedCard, cafeSpaces, 4));
+    setSubmitStatus("saving");
+    setSubmitMessage("");
+
+    try {
+      const projectId = await registerProjectActivity(
+        draftCard,
+        resolveCreatorId(user?.id),
+      );
+      const savedCard = {
+        ...draftCard,
+        id: `backend-project-${projectId}`,
+      };
+
+      setGroupCards((current) => [savedCard, ...current]);
+      setForm({
+        ...defaultGroupForm,
+        name: artistName,
+      });
+      setSubmitStatus("saved");
+      setSubmitMessage("DB에 활동이 등록되었습니다.");
+    } catch {
+      setSubmitStatus("error");
+      setSubmitMessage(
+        "활동 등록에 실패했습니다. 백엔드 프로젝트 엔드포인트를 확인해주세요.",
+      );
+    }
   }
 
-  function startEdit(card: CreatorProject) {
-    setForm(card);
-    setEditingId(card.id);
-    setResults(rankCafeMatches(card, cafeSpaces, 4));
+  function removeCard(cardId: string) {
+    setGroupCards((current) => current.filter((card) => card.id !== cardId));
   }
 
   return (
@@ -149,26 +170,17 @@ export default function CreatorForm() {
         className="rounded-lg border border-line bg-white p-5 shadow-soft"
       >
         <div>
-          <p className="text-sm font-semibold text-accent">그룹 등록</p>
+          <p className="text-sm font-semibold text-accent">활동 등록</p>
           <h2 className="mt-1 text-2xl font-bold text-ink">
-            어떤 그룹 프로젝트를 동네 카페에 올리고 싶나요?
+            어떤 활동을 동네 카페에 올리고 싶나요?
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            같은 팀이 어쿠스틱, 락, 전시, 팝업처럼 다른 형태로 바뀌어도
-            그룹 카드로 저장하고 다시 편집할 수 있습니다.
+            공연, 전시, 팝업처럼 카페 안에 자연스럽게 놓일 작은 활동을
+            카드로 저장해두세요.
           </p>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="space-y-1.5">
-            <span className="label">그룹 이름</span>
-            <input
-              className="form-field"
-              value={form.name}
-              onChange={(event) => update("name", event.target.value)}
-              placeholder="모노폴 세션"
-            />
-          </label>
           <label className="space-y-1.5">
             <span className="label">이벤트 유형</span>
             <select
@@ -247,7 +259,7 @@ export default function CreatorForm() {
 
         <div className="mt-4">
           <label className="space-y-1.5">
-            <span className="label">그룹/프로젝트 소개</span>
+            <span className="label">활동 소개</span>
             <textarea
               className="form-field min-h-24"
               value={form.introduction}
@@ -260,24 +272,30 @@ export default function CreatorForm() {
         <div className="mt-6">
           <button
             type="submit"
-            className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90"
+            disabled={submitStatus === "saving"}
+            className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {editingId ? (
-              <Save size={18} aria-hidden="true" />
-            ) : (
-              <Sparkles size={18} aria-hidden="true" />
-            )}
-            {editingId ? "그룹 카드 수정하기" : "그룹 카드 저장하기"}
+            <Sparkles size={18} aria-hidden="true" />
+            {submitStatus === "saving" ? "DB에 등록 중..." : "활동 카드 저장하기"}
           </button>
+          {submitMessage ? (
+            <p
+              className={`mt-3 text-sm font-semibold ${
+                submitStatus === "error" ? "text-red-700" : "text-primary"
+              }`}
+            >
+              {submitMessage}
+            </p>
+          ) : null}
         </div>
       </form>
 
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-semibold text-accent">저장된 그룹 카드</p>
+            <p className="text-sm font-semibold text-accent">저장된 활동 카드</p>
             <h2 className="mt-1 text-2xl font-bold text-ink">
-              장르가 바뀌어도 카드별로 다시 편집할 수 있습니다.
+              신청할 활동을 카드로 보관합니다.
             </h2>
           </div>
           <p className="text-sm font-semibold text-primary">
@@ -298,19 +316,16 @@ export default function CreatorForm() {
                       {eventTypeLabel(card.eventType)}
                     </p>
                     <h3 className="mt-1 text-xl font-bold text-ink">
-                      {card.name || "이름 없는 그룹"}
+                      {card.projectTitle || "활동 제목 미입력"}
                     </h3>
                   </div>
                   <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-primary">
                     {card.genre}
                   </span>
                 </div>
-                <p className="mt-3 font-bold text-primary">
-                  {card.projectTitle || "프로젝트 제목 미입력"}
-                </p>
                 <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink/70">
                   {card.introduction ||
-                    "그룹 소개를 입력하면 이 카드에 프로젝트 설명이 저장됩니다."}
+                    "활동 소개를 입력하면 이 카드에 설명이 저장됩니다."}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="badge">{card.preferredRegion}</span>
@@ -318,11 +333,11 @@ export default function CreatorForm() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => startEdit(card)}
+                  onClick={() => removeCard(card.id)}
                   className="focus-ring mt-auto inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent"
                 >
-                  <PencilLine size={16} aria-hidden="true" />
-                  이 카드 편집
+                  <Trash2 size={16} aria-hidden="true" />
+                  카드 제거
                 </button>
               </article>
             ))
@@ -330,48 +345,15 @@ export default function CreatorForm() {
             <div className="rounded-lg border border-dashed border-line bg-background p-5 md:col-span-2 xl:col-span-3">
               <div className="flex items-center gap-2 text-primary">
                 <UsersRound size={18} aria-hidden="true" />
-                <p className="font-bold">아직 저장된 그룹 카드가 없습니다.</p>
+                <p className="font-bold">아직 저장된 활동 카드가 없습니다.</p>
               </div>
               <p className="mt-2 text-sm leading-6 text-ink/70">
-                그룹 정보를 입력하고 저장하면 이곳에 카드가 생깁니다. 이후
-                어쿠스틱, 락, 팝업처럼 프로젝트 성격이 바뀔 때 다시 편집할 수
-                있습니다.
+                활동 정보를 입력하고 저장하면 이곳에 카드가 생깁니다. 필요 없는
+                카드는 바로 제거할 수 있습니다.
               </p>
             </div>
           )}
         </div>
-      </section>
-
-      <section className="space-y-5">
-        {results.length ? (
-          <>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {results.map((result) => (
-                <CafeCard
-                  key={result.cafe.id}
-                  cafe={result.cafe}
-                  score={result.totalScore}
-                  reason={result.recommendationReason}
-                  compact
-                  showLikeCount={false}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="rounded-lg border border-line bg-white p-6 shadow-soft">
-            <p className="text-sm font-semibold text-accent">
-              등록 미리보기 대기 중
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-ink">
-              그룹 정보를 입력하면 등록 카드가 저장됩니다.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-ink/70">
-              저장 후 그룹 카드와 함께 이벤트 유형, 장르, 지역, 시간대에 맞는
-              추천 카페를 그리드로 확인할 수 있습니다.
-            </p>
-          </div>
-        )}
       </section>
     </div>
   );

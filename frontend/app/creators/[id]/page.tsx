@@ -22,7 +22,7 @@ import {
 } from "@/lib/artists";
 import { creatorImages } from "@/lib/creatorAssets";
 import { GROUP_CARD_STORAGE_KEY } from "@/lib/storageKeys";
-import { baseLikeCount, eventTypeLabel } from "@/lib/utils";
+import { baseLikeCount, eventTypeLabel, unique } from "@/lib/utils";
 import type { CreatorProject, Review } from "@/types";
 
 const sampleReviews: Review[] = [
@@ -77,6 +77,16 @@ function formatScheduleDate(value: string) {
   }).format(date);
 }
 
+function getArtistHeadlineTags(artist: ArtistProfile) {
+  return unique(
+    [
+      artist.genres[0],
+      artist.eventTypes[0] ? eventTypeLabel(artist.eventTypes[0]) : undefined,
+      artist.preferredRegions[0],
+    ].filter((tag): tag is string => Boolean(tag)),
+  );
+}
+
 export default function CreatorDetailPage({
   params,
 }: {
@@ -114,6 +124,7 @@ export default function CreatorDetailPage({
   const canToggle = hydrated && user?.role === "consumer" && favoriteTarget;
   const likeCount = artist ? baseLikeCount(artist.id) + (favorite ? 1 : 0) : 0;
   const showConsumerActions = !hydrated || !user || user.role === "consumer";
+  const headlineTags = artist ? getArtistHeadlineTags(artist) : [];
 
   const reviews = useMemo(() => {
     if (!artist) return [];
@@ -218,12 +229,19 @@ export default function CreatorDetailPage({
                   <p className="text-sm font-semibold text-accent">
                     프로젝트 {artist.projects.length}개
                   </p>
-                  <h1 className="mt-2 text-4xl font-bold text-ink">
-                    {artist.name || "새로운 아티스트"}
-                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <h1 className="text-4xl font-bold text-ink">
+                      {artist.name || "새로운 아티스트"}
+                    </h1>
+                    {headlineTags.map((tag) => (
+                      <span key={tag} className="badge">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                   <p className="mt-3 flex items-center gap-2 text-sm text-primary/75">
                     <Sparkles size={16} aria-hidden="true" />
-                    {artist.genres.join(", ")}
+                    {artist.projects.map((project) => project.projectTitle).join(", ")}
                   </p>
                 </div>
                 {showConsumerActions ? (
@@ -272,13 +290,6 @@ export default function CreatorDetailPage({
                 </p>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-2">
-                {artist.genres.map((genre) => (
-                  <span key={genre} className="badge">
-                    {genre}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         </section>

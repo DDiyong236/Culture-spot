@@ -23,6 +23,7 @@ class SecurityConfig {
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/api/places/**").permitAll()
+                    .requestMatchers("/projects/**").permitAll()
                     .anyRequest().authenticated()
             }
 

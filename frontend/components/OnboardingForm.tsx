@@ -53,7 +53,11 @@ export default function OnboardingForm() {
 
     login({
       role: activeRole,
-      name: safeIdentifier ? safeIdentifier.split("@")[0] : roleLabel(activeRole),
+      name: safeIdentifier
+        ? safeIdentifier.split("@")[0]
+        : activeRole === "creator"
+          ? "홍길동"
+          : roleLabel(activeRole),
       email: safeIdentifier.includes("@")
         ? safeIdentifier
         : `${safeIdentifier || activeRole}@localstage.kr`,

@@ -40,7 +40,8 @@ export default function ProjectMatchAction({ project }: ProjectMatchActionProps)
       id: `project-application-${Date.now()}`,
       projectId: project.id,
       projectTitle: project.projectTitle || "프로젝트 제목 미입력",
-      creatorName: project.name || "이름 없는 그룹",
+      creatorName:
+        project.name && project.name !== "아티스트" ? project.name : "홍길동",
       cafeId: selectedCafe.id,
       cafeName: selectedCafe.name,
       createdAt: new Date().toISOString(),

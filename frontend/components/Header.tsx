@@ -24,7 +24,7 @@ function getNavItems(role?: UserRole) {
   if (role === "creator") {
     return [
       ...baseItems,
-      { href: "/creators", label: "그룹 등록", icon: Palette },
+      { href: "/creators", label: "활동 등록", icon: Palette },
       { href: "/dashboard", label: "내 작업실", icon: UserRound },
     ];
   }

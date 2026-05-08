@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Navigation, Users, Volume2 } from "lucide-react";
+import { LocateFixed, MapPin, Navigation, Users, Volume2 } from "lucide-react";
 import { cafeSpaces } from "@/data/mock";
 import {
   type CafeCoordinate,
@@ -11,13 +11,15 @@ import {
 import { CAFE_CARD_STORAGE_KEY } from "@/lib/storageKeys";
 import { cn, eventTypeLabel, formatPrice, noiseLabel } from "@/lib/utils";
 import type { CafeSpace } from "@/types";
-import type { LayerGroup, Map as LeafletMap } from "leaflet";
+import type { LayerGroup, Map as LeafletMap, Marker } from "leaflet";
 
 type CafeMapItem = CafeSpace & {
   coordinate: CafeCoordinate;
 };
 
 type LeafletModule = typeof import("leaflet");
+
+type LocateStatus = "idle" | "locating" | "found" | "error";
 
 const TILE_LAYER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const TILE_LAYER_ATTRIBUTION =
@@ -87,21 +89,87 @@ function createMarkerIcon(leaflet: LeafletModule, selected: boolean) {
   });
 }
 
+function createCurrentLocationIcon(leaflet: LeafletModule) {
+  return leaflet.divIcon({
+    className: "",
+    html: `<span style="
+      display:block;
+      width:18px;
+      height:18px;
+      border-radius:9999px;
+      border:4px solid #fff;
+      background:#2563eb;
+      box-shadow:0 6px 18px rgba(37,99,235,0.28);
+    "></span>`,
+    iconAnchor: [9, 9],
+    iconSize: [18, 18],
+  });
+}
+
 export default function CafeMap() {
   const mapRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const cafeCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const mapInstanceRef = useRef<LeafletMap | null>(null);
   const markerLayerRef = useRef<LayerGroup | null>(null);
   const leafletRef = useRef<LeafletModule | null>(null);
+  const currentLocationMarkerRef = useRef<Marker | null>(null);
   const fittedCafeCountRef = useRef(0);
   const shouldFocusSelectedCafeRef = useRef(false);
+  const shouldScrollSelectedCafeRef = useRef(false);
 
   const [registeredCafes, setRegisteredCafes] = useState<CafeSpace[]>([]);
   const [selectedCafeId, setSelectedCafeId] = useState(cafeSpaces[0]?.id ?? "");
   const [isMapReady, setIsMapReady] = useState(false);
+  const [locateStatus, setLocateStatus] = useState<LocateStatus>("idle");
 
   const selectCafe = useCallback((id: string) => {
     shouldFocusSelectedCafeRef.current = true;
+    shouldScrollSelectedCafeRef.current = true;
     setSelectedCafeId(id);
+  }, []);
+
+  const moveToCurrentLocation = useCallback(() => {
+    const leaflet = leafletRef.current;
+    const map = mapInstanceRef.current;
+
+    if (!leaflet || !map || !navigator.geolocation) {
+      setLocateStatus("error");
+      return;
+    }
+
+    setLocateStatus("locating");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const currentPosition: [number, number] = [
+          coords.latitude,
+          coords.longitude,
+        ];
+
+        currentLocationMarkerRef.current?.remove();
+        currentLocationMarkerRef.current = leaflet
+          .marker(currentPosition, {
+            icon: createCurrentLocationIcon(leaflet),
+            title: "내 위치",
+            zIndexOffset: 1000,
+          })
+          .bindPopup("내 위치")
+          .addTo(map);
+
+        map.flyTo(currentPosition, Math.max(map.getZoom(), 15), {
+          duration: 0.7,
+        });
+        setLocateStatus("found");
+      },
+      () => {
+        setLocateStatus("error");
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 60000,
+        timeout: 10000,
+      },
+    );
   }, []);
 
   useEffect(() => {
@@ -149,6 +217,8 @@ export default function CafeMap() {
     return () => {
       cancelled = true;
       markerLayerRef.current = null;
+      currentLocationMarkerRef.current?.remove();
+      currentLocationMarkerRef.current = null;
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
       leafletRef.current = null;
@@ -205,6 +275,28 @@ export default function CafeMap() {
     });
   }, [isMapReady, selectedCafe]);
 
+  useEffect(() => {
+    if (!selectedCafe || !shouldScrollSelectedCafeRef.current) return;
+
+    shouldScrollSelectedCafeRef.current = false;
+
+    window.requestAnimationFrame(() => {
+      const list = listRef.current;
+      const card = cafeCardRefs.current[selectedCafe.id];
+
+      if (!list || !card) return;
+
+      const listTop = list.getBoundingClientRect().top;
+      const cardTop = card.getBoundingClientRect().top;
+      const nextScrollTop = list.scrollTop + cardTop - listTop - 12;
+
+      list.scrollTo({
+        top: Math.max(0, nextScrollTop),
+        behavior: "smooth",
+      });
+    });
+  }, [selectedCafe]);
+
   return (
     <section className="relative h-[calc(100svh-4.5rem)] min-h-[560px] overflow-hidden bg-[#dfe7dc]">
       <div
@@ -216,6 +308,25 @@ export default function CafeMap() {
       <div className="pointer-events-none absolute right-4 top-4 z-20 rounded-lg border border-white/80 bg-white/90 px-3 py-2 text-xs font-bold text-primary shadow-soft">
         OpenStreetMap
       </div>
+      <button
+        type="button"
+        aria-label="내 위치로 이동"
+        title="내 위치로 이동"
+        onClick={moveToCurrentLocation}
+        disabled={!isMapReady || locateStatus === "locating"}
+        className={cn(
+          "focus-ring absolute right-4 top-[4.5rem] z-30 flex size-14 items-center justify-center rounded-lg border border-line bg-white/95 text-primary shadow-soft transition hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-70",
+          locateStatus === "found" && "border-accent text-accent",
+          locateStatus === "error" && "border-accent text-accent",
+        )}
+      >
+        <LocateFixed size={30} aria-hidden="true" />
+      </button>
+      {locateStatus === "error" ? (
+        <div className="absolute right-4 top-[8.5rem] z-30 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs font-bold text-accent shadow-soft">
+          위치 권한 필요
+        </div>
+      ) : null}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-black/10 to-transparent" />
 
@@ -243,13 +354,16 @@ export default function CafeMap() {
           ) : null}
         </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto p-3">
+        <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto p-3">
           {cafes.map((cafe) => {
             const selected = cafe.id === selectedCafe?.id;
 
             return (
               <button
                 key={cafe.id}
+                ref={(node) => {
+                  cafeCardRefs.current[cafe.id] = node;
+                }}
                 type="button"
                 onClick={() => selectCafe(cafe.id)}
                 className={cn(
